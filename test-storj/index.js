@@ -1,93 +1,61 @@
 const storj = require("uplink-nodejs");
 const libUplink = new storj.Uplink();
 
-/*
-PASTE CREDENTIALS HERE
-*/
+var satelliteURL = "12EayRS2V1kEsWESU9QMRseFhdxYxKicsiFmxrsLZHeLUtdps3S@us1.storj.io:7777";
+var apiKey = "1dfHxfBQEwMbpqjE7hyKtTbykigSBkzgq7uCFr99K2YFDNvcSS9q4i5KA7QUBcs1rULjbU84496owoqNpA5yMrjLqMdG1cbRL5AbHrjor9r5Lm1hBGPU";
+var encryptionPassphrase = "grape grape crawl angle squirrel symbol common pair bracket citizen funny sunset";
 
-// encryptionPassphrase = "null";
 var config = new storj.Config();
-libUplink
-	.configRequestAccessWithPassphrase(
-		config,
-		satelliteURL,
-		apiKey,
-		encryptionPassphrase
-	)
-	.then((access) => {
-		console.log("Access granted: " + access);
-		access
-			.openProject()
-			.then(async (project) => {
-				console.log("Project opened: " + project);
-				var listBucketsOptions = new storj.ListBucketsOptions();
 
-				// List Buckets
-				// await project
-				// 	.listBuckets(listBucketsOptions)
-				// 	.then(async (bucketListResult) => {
-				// 		console.log("List bucket results: " + bucketListResult);
-				// 		console.log(JSON.stringify(bucketListResult));
-				// 		// for (const property in bucketListResult) {
-				// 		// 	console.log(
-				// 		// 		`${property}: ${bucketListResult[property]}`
-				// 		// 	);
-				// 		// }
-				// 	})
-				// 	.catch((err) => {
-				// 		console.log(
-				// 			"Error occured while listing buckets: " + err
-				// 		);
-				// 	});
+const requestAccess = async (config, satelliteURL, apiKey, encryptionPassphrase) => {
+	try {
+		const access = await libUplink.configRequestAccessWithPassphrase(config, satelliteURL, apiKey, encryptionPassphrase);
+		return access;
+	} catch (err) {
+		console.log(`Error occured during function requestAccess: ${err}`);
+	}
+};
 
-				// List Objects
-				var bucketName = "demo-bucket";
-				// var listObjectsOptions = new storj.ListObjectsOptions();
-				// await project
-				// 	.listObjects(bucketName, listObjectsOptions)
-				// 	.then((objectlist) => {
-				// 		console.log(
-				// 			"List of objects: " + JSON.stringify(objectlist)
-				// 		);
-				// 	})
-				// 	.catch((err) => {
-				// 		console.log(
-				// 			"Error occured while obtaining object list: " + err
-				// 		);
-				// 	});
+const openProject = async (accessObject) => {
+	try {
+		const project = await accessObject.openProject();
+		return project;
+	} catch (err) {
+		console.log(`Error occured during function openProject: ${err}`);
+	}
+};
 
-				// Upload file
-				var objectName = "test node.js upload";
-				var uploadOptions = new storj.UploadOptions();
-				await project
-					.uploadObject(bucketName, objectName, uploadOptions)
-					.then(async (upload) => {
-						console.log("Upload: " + JSON.stringify(upload));
-						// creating buffer to store data.data will be stored in buffer that needs to be uploaded
-						var buffer = new Buffer.alloc(BUFFER_SIZE);
-						await upload
-							.write(buffer, buffer.length)
-							.then((writeResult) => {
-								console.log(
-									"Write: " + JSON.stringify(writeResult)
-								);
-							})
-							.catch((err) => {
-								console.log(
-									"Error occured while write: " + err
-								);
-							});
-					})
-					.catch((err) => {
-						console.log(
-							"Error occured while uploading file: " + err
-						);
-					});
-			})
-			.catch((err) => {
-				console.log("Error occured while opening project: " + err);
-			});
-	})
-	.catch((err) => {
-		console.log("Error occured while granting access: " + err);
-	});
+const listBuckets = async (listBucketsOptions, projectObject) => {
+	try {
+		const bucketListResult = await projectObject.listBuckets(listBucketsOptions);
+		return bucketListResult;
+	} catch (err) {
+		console.log(`Error occured during function listBuckets: ${err}`);
+	}
+};
+
+const listObjects = async (projectObject, bucketName, ListObjectsOptions) => {
+	try {
+		const objectList = await projectObject.listObjects(bucketName, ListObjectsOptions);
+		return objectList;
+	} catch (err) {
+		console.log(`Error occured during function listObjects: ${err}`);
+	}
+};
+
+const run = async () => {
+	const accessObject = await requestAccess(config, satelliteURL, apiKey, encryptionPassphrase);
+	const projectObject = await openProject(accessObject);
+	const listBucketsOptions = new storj.ListBucketsOptions();
+	const bucketList = await listBuckets(listBucketsOptions, projectObject);
+	const listObjectsOptions = new storj.ListObjectsOptions();
+	console.log(JSON.stringify(bucketList));
+	for (const property in bucketList["bucketList"]) {
+		const bucketName = bucketList["bucketList"][property]["name"];
+		console.log(`Bucket Name: ${bucketName}`);
+		const objectList = await listObjects(projectObject, bucketName, listObjectsOptions);
+		console.log(JSON.stringify(objectList));
+	}
+};
+
+run();
