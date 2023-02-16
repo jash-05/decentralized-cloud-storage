@@ -50,6 +50,7 @@ const listObjects = async (projectObject, bucketName, ListObjectsOptions) => {
 	}
 };
 
+
 const uploadFileToStorJ = async(projectObject) =>{
 	//upload a file
 	console.log("Getting Upload Object....");
@@ -184,6 +185,50 @@ const deleteBucket = async(projectObject) =>{
         });
 }
 
+const createBucket =  async (projectObject, newBucketName,listBucketsOptions) =>{
+	console.log("testing create bucket")
+	try{
+		const createBucketOb = await projectObject.createBucket(newBucketName);
+		console.log(createBucketOb)
+	} catch (err){
+		console.log(" Error occured while creating bucket")
+	}
+}
+
+const emptyBucket = async( projectObject, bucketName, listObjectsOptions) =>{
+	console.log("Testing empty bucket")
+	const objectList = await listObjects(projectObject, bucketName, listObjectsOptions);
+	// console.log(JSON.stringify(objectList));
+
+	for(const file in objectList){
+		let toDelete = objectList[file]["key"]
+		console.log("FileName", toDelete)
+		try{
+			let deletedFile = await projectObject.deleteObject(bucketName, toDelete)
+			console.log("Successfully deleted file: ", deletedFile)
+		}
+		catch (err){
+			console.log("Error deleting file! ", err)
+		}
+
+	}
+}
+
+/* secondary option for delete bucket
+
+const deleteBucket = async(projectObject, bucketName)=>{
+try{
+	const deletedBucketInfo = await projectObject.deleteBucket(bucketName)
+	console.log("Bucket Deleted Successfully!",  JSON.stringify(deletedBucketInfo));
+
+}
+catch(err){
+	console.log("Error deleting bucket: ", err)
+}
+
+}
+*/
+
 
 const run = async () => {
 	const accessObject = await requestAccess(config, satelliteURL, apiKey, encryptionPassphrase);
@@ -198,9 +243,21 @@ const run = async () => {
 		const objectList = await listObjects(projectObject, bucketName, listObjectsOptions);
 		console.log(JSON.stringify(objectList));
 	}
+
+
 	//const uploadObjectStorJ = await uploadFileToStorJ(projectObject);
 	//const deleteObjectStorJ = await deleteFileToStorJ(projectObject);
 	const deleteBucketInStorJ = await deleteBucket(projectObject);
+
+
+    
+    // var newBucketName = "change-me-to-desired-bucket-name";
+	// const createBucketObject = await createBucket(projectObject, newBucketName, listBucketsOptions);
+
+    // var bucketName = "change-me-to-desired-bucket-name";
+	// const emptyBucketObject = await emptyBucket( projectObject, bucketName, listObjectsOptions)
+    // const deleteBucketObject = await deleteBucket(projectObject,bucketName)
+
 };
 
 run();
