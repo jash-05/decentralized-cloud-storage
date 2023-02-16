@@ -7,6 +7,7 @@ var apiKey = "1dfHxfBQEwMbpqjE7hyKtTbykigSBkzgq7uCFr99K2YFDNvcSS9q4i5KA7QUBcs1rU
 var encryptionPassphrase = "grape grape crawl angle squirrel symbol common pair bracket citizen funny sunset";
 var bucketName = "test2"; 
 var uploadPath = "Lab2.pdf"; //File path to be uploaded.
+var deleteBucketPath = "bucketToBeDeleted"; //name of bucket to be deleted
 
 var config = new storj.Config();
 var localFullFileName = {
@@ -156,9 +157,32 @@ const deleteFileToStorJ = async(projectObject) =>{
 		console.log(err);
 	});
 }
-
-
-
+const deleteBucket = async(projectObject) =>{
+	console.log("Deleting Bucket : ", deleteBucketPath);
+        await projectObject.deleteBucket(deleteBucketPath).then((bucketInfo) => {
+           console.log("\nBucket Deleted : \n Bucket Name : ",bucketInfo.name,"\n Bucket Created : ",getDateTime(bucketInfo.created));
+        }).catch(async (err) => {
+            //Checking error type
+            if (err instanceof uplinkError.BucketNotEmptyError) {
+                //Delete object from the network
+                console.log("Bucket is not empty !!\nDeleting object from storj V3 bucket...");
+                await projectObject.deleteObject(deleteBucketPath,deleteBucketPath).then((objectinfo) => {
+                    console.log("Object ",deleteBucketPath," Deleted");
+                    console.log("Object Size : ",objectinfo.system.content_length);
+                }).catch((err) => {
+                    console.log("Failed to delete object");
+                    console.log(err);
+                });        
+            }
+			else if (err instanceof PromiseRejectionEvent) {
+				console.log("promise rejection warning.. bucket is deleted " +  bucketInfo.name);
+			}
+			else {
+                console.log("Failed to delete bucket");
+                console.log(err);
+            }
+        });
+}
 
 
 const run = async () => {
@@ -176,6 +200,7 @@ const run = async () => {
 	}
 	//const uploadObjectStorJ = await uploadFileToStorJ(projectObject);
 	//const deleteObjectStorJ = await deleteFileToStorJ(projectObject);
+	const deleteBucketInStorJ = await deleteBucket(projectObject);
 };
 
 run();
