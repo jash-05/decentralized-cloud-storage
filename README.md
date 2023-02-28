@@ -14,3 +14,4 @@
 3. Use command "node put-files" to run the code
 4. put-files.js -> Used to upload a file
 5. retrieve-files.js -> Get a list of all the files uploaded to the network. 
+6. Refer doc : https://web3.storage/docs/how-tos/store/?lang=js
