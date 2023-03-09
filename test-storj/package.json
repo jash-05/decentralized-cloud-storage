@@ -9,6 +9,6 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
-    "uplink-nodejs": "^1.2.6"
+    "uplink-nodejs": "1.2.6"
   }
 }
