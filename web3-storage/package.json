@@ -9,6 +9,7 @@
     },
     "dependencies": {
         "minimist": "^1.2.5",
+        "request": "^2.88.2",
         "web3.storage": "^3.5.7"
     },
     "author": "YOUR NAME",
