@@ -18,6 +18,10 @@ const (
 	myBucket         = "test2"
 )
 
+func enableCors(w *http.ResponseWriter) {
+	(*w).Header().Set("Access-Control-Allow-Origin", "*")
+}
+
 func downloadData(ctx context.Context,
 	access *uplink.Access, bucketName string, objectKey string) error {
 
@@ -102,6 +106,8 @@ func uploadData(ctx context.Context,
 func downloadFile(w http.ResponseWriter, r *http.Request) {
 	fmt.Println("File Download Endpoint Hit")
 
+	enableCors(&w)
+
 	access, err := uplink.RequestAccessWithPassphrase(context.Background(), satelliteAddress, apiKey, rootPassphrase)
 	if err != nil {
 		fmt.Println("Access to Uplink failed")
@@ -128,6 +134,8 @@ func downloadFile(w http.ResponseWriter, r *http.Request) {
 
 func uploadFile(w http.ResponseWriter, r *http.Request) {
 	fmt.Println("File Upload Endpoint Hit")
+
+	enableCors(&w)
 
 	// Parse our multipart form, 10 << 20 specifies a maximum
 	// upload of 10 MB files.
