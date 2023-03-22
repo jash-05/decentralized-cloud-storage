@@ -123,7 +123,7 @@ func downloadFile(w http.ResponseWriter, r *http.Request) {
 	}
 
 	w.WriteHeader(http.StatusOK)
-	w.Write([]byte("Downloaded succesfully"))
+	w.Write([]byte("Downloaded successfully"))
 }
 
 func uploadFile(w http.ResponseWriter, r *http.Request) {
@@ -164,16 +164,124 @@ func uploadFile(w http.ResponseWriter, r *http.Request) {
 	}
 
 	w.WriteHeader(http.StatusOK)
-	w.Write([]byte("Uploaded succesfully"))
+	w.Write([]byte("Uploaded successfully"))
 }
+
+//--------------------------------------------
+
+func getBuckets(w http.ResponseWriter, r *http.Request){
+	fmt.Println("Get Buckets API hit")
+
+	access, err := uplink.RequestAccessWithPassphrase(context.Background(), satelliteAddress, apiKey, rootPassphrase)
+	if err != nil {
+		fmt.Println("Access to Uplink failed")
+		return
+	}
+
+	err = listBuckets(context.Background(), access )
+	if err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+		w.Write([]byte("Failed to get bucket list"))
+	}
+
+	
+	w.WriteHeader(http.StatusOK)
+	w.Write([]byte("Retrieved buckets successfully"))
+}
+
+func listBuckets(ctx context.Context,
+	access *uplink.Access ) error {
+
+	fmt.Println("opening project ... ")
+	project, err := uplink.OpenProject(ctx, access)
+	if err != nil {
+		return fmt.Errorf("could not open project: %v", err)
+	}
+	defer project.Close()
+
+	buckets := project.ListBuckets(ctx, nil)
+	for buckets.Next() {
+    	fmt.Println(buckets.Item().Name)
+	}
+
+	if err := buckets.Err(); err != nil {
+		return fmt.Errorf("Could not list buckets: %v", err)
+	}
+
+	fmt.Println("Buckets listed successfully")
+	return nil
+}
+
+//-----------------------------------------------------------------------------
+
+func getObjects(w http.ResponseWriter, r *http.Request){
+	fmt.Println("Get Objects API hit")
+
+	access, err := uplink.RequestAccessWithPassphrase(context.Background(), satelliteAddress, apiKey, rootPassphrase)
+	if err != nil {
+		fmt.Println("Access to Uplink failed")
+		return
+	}
+
+	err = listObjects(context.Background(), access )
+	if err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+		w.Write([]byte("Failed to get objects list"))
+	}
+
+	
+	w.WriteHeader(http.StatusOK)
+	w.Write([]byte("Retrieved objects successfully"))
+}
+
+func listObjects(ctx context.Context,
+	access *uplink.Access ) error {
+
+	fmt.Println("opening project ... ")
+	project, err := uplink.OpenProject(ctx, access)
+	if err != nil {
+		return fmt.Errorf("could not open project: %v", err)
+	}
+	defer project.Close()
+	
+	// Ensure the desired Bucket within the Project is created.
+	_, err = project.EnsureBucket(ctx, myBucket)
+	if err != nil {
+		return fmt.Errorf("could not ensure bucket: %v", err)
+	}
+	
+
+	objects := project.ListObjects(ctx, myBucket, nil)
+	
+	for objects.Next() {
+    	item := objects.Item()
+    	fmt.Println(item.IsPrefix, item.Key)
+	}
+	
+	if err := objects.Err(); err != nil {
+		return fmt.Errorf("Could not list objects: %v", err)
+	}
+
+	fmt.Println("Objects listed successfully")
+	return nil
+}
+
+
 
 func setupRoutes() {
 	http.HandleFunc("/upload", uploadFile)
 	http.HandleFunc("/download", downloadFile)
+	http.HandleFunc("/getBuckets", getBuckets)
+	http.HandleFunc("/getObjects", getObjects)
 	http.ListenAndServe(":8080", nil)
 }
+
+
+
+
 
 func main() {
 	fmt.Println("Hello World")
 	setupRoutes()
+	// listObjects()
 }
