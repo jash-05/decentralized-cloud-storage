@@ -3,7 +3,9 @@ package main
 import (
 	"context"
 	"fmt"
+	"io"
 	"io/fs"
+	"net/http"
 	"os"
 
 	"github.com/ipfs/go-cid"
@@ -74,20 +76,66 @@ func getFiles(ctx context.Context, c w3s.Client, stringCid string) []string {
 	return fileUrlsForCid
 }
 
+func uploadFiletoNetwork(w http.ResponseWriter, r *http.Request){
+
+    fmt.Println("Upload File to web3storage")
+    r.ParseMultipartForm(10 << 20)
+
+    file, header, err := r.FormFile("myFile")
+    if err!=nil{
+        fmt.Println("Error retrieving file", err)
+        return
+    }
+    
+    defer file.Close()
+    
+    fmt.Println("Uploading File : ", header.Filename)
+
+    var filename string = header.Filename
+
+    access, err := w3s.NewClient(w3s.WithToken(mytoken))
+    if err != nil {
+        fmt.Println("Failed to gain access to web3storage client")
+    }
+ 
+    ctx := context.Background()
+
+    fileBytes, err:= io.ReadAll(file)
+    f, err := os.Create(filename)
+    byteswritten , err := f.Write(fileBytes)
+    fmt.Println("Bytes written : ", byteswritten)   
+
+    cid, err := access.Put(ctx,f)
+    if (err!=nil) {
+        fmt.Println("Could not upload file", filename, err)
+    }
+    
+    fmt.Printf("File upload successfull with cid %s",  cid)
+
+}
+
+func setupRoutes() {
+    http.HandleFunc("/upload", uploadFiletoNetwork)
+    http.ListenAndServe(":8087", nil)
+}
+
+
 func main() {
-	c, err := w3s.NewClient(w3s.WithToken(mytoken))
-	if err != nil {
-		panic(err)
-	}
 
-	ctx := context.Background()
+	setupRoutes()
+	// c, err := w3s.NewClient(w3s.WithToken(mytoken))
+	// if err != nil {
+	// 	panic(err)
+	// }
 
-	// Upload File
-	uploadedCid := uploadFile(ctx, c)
-	fmt.Printf("Uploaded CID = %s\n", uploadedCid)
+	// ctx := context.Background()
 
-	// Download file
-	// uploadedCid := "bafybeieawnqabjulxna3dcyeu3ugqori5dy3sykr6emv6zrtse3eyyshde"
-	fileUrlsForCid := getFiles(ctx, c, uploadedCid)
-	fmt.Printf("The locations of files are: %v\n", fileUrlsForCid)
+	// // Upload File
+	// uploadedCid := uploadFile(ctx, c)
+	// fmt.Printf("Uploaded CID = %s\n", uploadedCid)
+
+	// // Download file
+	// // uploadedCid := "bafybeieawnqabjulxna3dcyeu3ugqori5dy3sykr6emv6zrtse3eyyshde"
+	// fileUrlsForCid := getFiles(ctx, c, uploadedCid)
+	// fmt.Printf("The locations of files are: %v\n", fileUrlsForCid)
 }

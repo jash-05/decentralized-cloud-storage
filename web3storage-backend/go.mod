@@ -2,6 +2,8 @@ module example/web3
 
 go 1.20
 
+require github.com/web3-storage/go-w3s-client v0.0.7
+
 require (
 	github.com/ipfs/go-cid v0.4.0
 	github.com/web3-storage/go-w3s-client v0.0.7
