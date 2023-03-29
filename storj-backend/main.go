@@ -3,24 +3,43 @@ package main
 import (
 	"bytes"
 	"context"
+	"example/backend/constants"
 	"fmt"
 	"io"
 	"net/http"
 	"os"
 
+	"go.mongodb.org/mongo-driver/mongo"
+	"go.mongodb.org/mongo-driver/mongo/options"
+	"go.mongodb.org/mongo-driver/mongo/readpref"
 	"storj.io/uplink"
 )
+
+// --------------------------------------------------------------------------------------------- Constants & Helpers -------------------------------------------------------------------------------------------------------------------
 
 const (
 	satelliteAddress = "12EayRS2V1kEsWESU9QMRseFhdxYxKicsiFmxrsLZHeLUtdps3S@us1.storj.io:7777"
 	apiKey           = "1dfHxfBQEwMbpqjE7hyKtTbykigSBkzgq7uCFr99K2YFDNvcSS9q4i5KA7QUBcs1rULjbU84496owoqNpA5yMrjLqMdG1cbRL5AbHrjor9r5Lm1hBGPU"
 	rootPassphrase   = "grape grape crawl angle squirrel symbol common pair bracket citizen funny sunset"
 	myBucket         = "test2"
+	databaseName     = "dcs-cluster0"
+	// mongoUri         = "mongodb+srv://root:NYi8hH8nDyb63WjY@dcs-cluster0.hxydeib.mongodb.net/?retryWrites=true&w=majority"
 )
 
 func enableCors(w *http.ResponseWriter) {
 	(*w).Header().Set("Access-Control-Allow-Origin", "*")
 }
+
+func getStorjAccess() (*uplink.Access, error) {
+	access, err := uplink.RequestAccessWithPassphrase(context.Background(), satelliteAddress, apiKey, rootPassphrase)
+	if err != nil {
+		return nil, fmt.Errorf("could not get access grant: %v", err)
+	}
+
+	return access, nil
+}
+
+// ----------------------------------------------------------------------------------------------- Upload/Download endpoints ------------------------------------------------------------------------------------------------------------
 
 func downloadData(ctx context.Context,
 	access *uplink.Access, bucketName string, objectKey string) error {
@@ -103,35 +122,6 @@ func uploadData(ctx context.Context,
 	return nil
 }
 
-func downloadFile(w http.ResponseWriter, r *http.Request) {
-	fmt.Println("File Download Endpoint Hit")
-
-	enableCors(&w)
-
-	access, err := uplink.RequestAccessWithPassphrase(context.Background(), satelliteAddress, apiKey, rootPassphrase)
-	if err != nil {
-		fmt.Println("Access to Uplink failed")
-		return
-	}
-
-	// Parses the request body
-	r.ParseForm()
-
-	// fileName will be "" if parameter is not set
-	fileName := r.Form.Get("fileName")
-
-	// later we will read bucketName from the r.Form as well
-
-	err = downloadData(context.Background(), access, myBucket, fileName)
-	if err != nil {
-		w.WriteHeader(http.StatusInternalServerError)
-		w.Write([]byte("Storj download failed"))
-	}
-
-	w.WriteHeader(http.StatusOK)
-	w.Write([]byte("Downloaded successfully"))
-}
-
 func uploadFile(w http.ResponseWriter, r *http.Request) {
 	fmt.Println("File Upload Endpoint Hit")
 
@@ -159,10 +149,10 @@ func uploadFile(w http.ResponseWriter, r *http.Request) {
 		fmt.Println(err)
 	}
 
-	access, err := uplink.RequestAccessWithPassphrase(context.Background(), satelliteAddress, apiKey, rootPassphrase)
+	access, err := getStorjAccess()
 	if err != nil {
-		fmt.Println("Access to Uplink failed")
-		return
+		w.WriteHeader(http.StatusInternalServerError)
+		w.Write([]byte("Access to Uplink failed"))
 	}
 
 	err = uploadData(context.Background(), access, myBucket, fileName, fileBytes)
@@ -175,15 +165,44 @@ func uploadFile(w http.ResponseWriter, r *http.Request) {
 	w.Write([]byte("Uploaded successfully"))
 }
 
-//--------------------------------------------
+func downloadFile(w http.ResponseWriter, r *http.Request) {
+	fmt.Println("File Download Endpoint Hit")
+
+	enableCors(&w)
+
+	access, err := getStorjAccess()
+	if err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+		w.Write([]byte("Access to Uplink failed"))
+	}
+
+	// Parses the request body
+	r.ParseForm()
+
+	// fileName will be "" if parameter is not set
+	fileName := r.Form.Get("fileName")
+
+	// later we will read bucketName from the r.Form as well
+
+	err = downloadData(context.Background(), access, myBucket, fileName)
+	if err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+		w.Write([]byte("Storj download failed"))
+	}
+
+	w.WriteHeader(http.StatusOK)
+	w.Write([]byte("Downloaded successfully"))
+}
+
+// -------------------------------------------------------------------------------------------------- Bucket endpoints -------------------------------------------------------------------------------------------------------------------
 
 func getBuckets(w http.ResponseWriter, r *http.Request) {
 	fmt.Println("Get Buckets API hit")
 
-	access, err := uplink.RequestAccessWithPassphrase(context.Background(), satelliteAddress, apiKey, rootPassphrase)
+	access, err := getStorjAccess()
 	if err != nil {
-		fmt.Println("Access to Uplink failed")
-		return
+		w.WriteHeader(http.StatusInternalServerError)
+		w.Write([]byte("Access to Uplink failed"))
 	}
 
 	err = listBuckets(context.Background(), access)
@@ -219,26 +238,7 @@ func listBuckets(ctx context.Context,
 	return nil
 }
 
-//-----------------------------------------------------------------------------
-
-func getObjects(w http.ResponseWriter, r *http.Request) {
-	fmt.Println("Get Objects API hit")
-
-	access, err := uplink.RequestAccessWithPassphrase(context.Background(), satelliteAddress, apiKey, rootPassphrase)
-	if err != nil {
-		fmt.Println("Access to Uplink failed")
-		return
-	}
-
-	err = listObjects(context.Background(), access)
-	if err != nil {
-		w.WriteHeader(http.StatusInternalServerError)
-		w.Write([]byte("Failed to get objects list"))
-	}
-
-	w.WriteHeader(http.StatusOK)
-	w.Write([]byte("Retrieved objects successfully"))
-}
+// -------------------------------------------------------------------------------------------------- Object endpoints ------------------------------------------------------------------------------------------------------------------
 
 func listObjects(ctx context.Context,
 	access *uplink.Access) error {
@@ -260,7 +260,7 @@ func listObjects(ctx context.Context,
 
 	for objects.Next() {
 		item := objects.Item()
-		fmt.Println(item.IsPrefix, item.Key)
+		fmt.Println(item.Key)
 	}
 
 	if err := objects.Err(); err != nil {
@@ -270,6 +270,27 @@ func listObjects(ctx context.Context,
 	fmt.Println("Objects listed successfully")
 	return nil
 }
+
+func getObjects(w http.ResponseWriter, r *http.Request) {
+	fmt.Println("Get Objects API hit")
+
+	access, err := getStorjAccess()
+	if err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+		w.Write([]byte("Access to Uplink failed"))
+	}
+
+	err = listObjects(context.Background(), access)
+	if err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+		w.Write([]byte("Failed to get objects list"))
+	}
+
+	w.WriteHeader(http.StatusOK)
+	w.Write([]byte("Retrieved objects successfully"))
+}
+
+// -------------------------------------------------------------------------------------------- main and routes -------------------------------------------------------------------------------------------------------------------------
 
 func setupRoutes() {
 	http.HandleFunc("/upload", uploadFile)
@@ -282,4 +303,70 @@ func setupRoutes() {
 func main() {
 	fmt.Println("Hello World")
 	setupRoutes()
+
+	var mongoUri = constants.MONGO_URI
+
+	var ctx = context.TODO()
+
+	client, err := mongo.Connect(ctx, options.Client().ApplyURI(mongoUri))
+	if err != nil {
+		fmt.Println("Error connecting to MongoDB: ", err)
+		panic(err)
+	}
+
+	err = client.Ping(ctx, readpref.Primary())
+	if err != nil {
+		fmt.Println("Error pinging to MongoDB: ", err)
+		panic(err)
+	}
+
+	fmt.Println("Connected to MongoDB!")
+
+	// rentersCollection := client.Database(databaseName).Collection("renters")
+
+	// // // Creating a Renter document
+	// var bucketIds = make([]primitive.ObjectID, 0)
+	// renter := models.Renter{Name: "testRenter1", Email: "testRenter1@renter.com", Password: "testRenter1", Mobile: "1234567890", Location: "SJC", Buckets: bucketIds, TotalBuckets: 0, TotalNumberOfFiles: 0, TotalStorageUsed: 0, TotalBandwidth: 0}
+	// res, err := rentersCollection.InsertOne(context.TODO(), renter)
+	// if err != nil {
+	// 	fmt.Println("Error inserting to MongoDB: ", err)
+	// 	return
+	// }
+
+	// fmt.Println("Inserted: ", res.InsertedID)
+
+	// // // Updating a Bucket ID inside []buckets within Renter document
+
+	// var bucketId, _ = primitive.ObjectIDFromHex("642287487a2d1c86cf9dd3f5")
+
+	// var renterId, _ = primitive.ObjectIDFromHex("64228d510c4f6ffa8401ea01")
+
+	// result, err := rentersCollection.UpdateOne(
+	// 	ctx,
+	// 	bson.M{"_id": renterId},
+	// 	bson.M{"$push": bson.M{"buckets": bucketId}},
+	// )
+
+	// if err != nil {
+	// 	fmt.Println("Error updating to MongoDB: ", err)
+	// 	return
+	// }
+
+	// fmt.Println("Updated Documents! ", result.ModifiedCount)
+
+	// // // Creating a Bucket document
+
+	// bucketsCollection := client.Database(databaseName).Collection("buckets")
+
+	// renterId, err := primitive.ObjectIDFromHex("6422826f24e6f72edf8796bc")
+	// if err != nil {
+	// 	fmt.Println("Error converting to ObjectID: ", err)
+	// 	return
+	// }
+
+	// bucketObj := models.Bucket{BucketName: "testBucket1", RenterId: renterId, CreationTime: time.Now(), StorageBackend: "storj", Files: []models.File{}}
+	// res, err := bucketsCollection.InsertOne(context.TODO(), bucketObj)
+
+	// fmt.Println("Inserted: ", res.InsertedID)
+
 }
