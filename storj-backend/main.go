@@ -3,6 +3,7 @@ package main
 import (
 	"bytes"
 	"context"
+	"example/backend/constants"
 	"fmt"
 	"io"
 	"net/http"
@@ -22,7 +23,7 @@ const (
 	rootPassphrase   = "grape grape crawl angle squirrel symbol common pair bracket citizen funny sunset"
 	myBucket         = "test2"
 	databaseName     = "dcs-cluster0"
-	mongoUri         = "mongodb+srv://root:NYi8hH8nDyb63WjY@dcs-cluster0.hxydeib.mongodb.net/?retryWrites=true&w=majority"
+	// mongoUri         = "mongodb+srv://root:NYi8hH8nDyb63WjY@dcs-cluster0.hxydeib.mongodb.net/?retryWrites=true&w=majority"
 )
 
 func enableCors(w *http.ResponseWriter) {
@@ -302,6 +303,8 @@ func setupRoutes() {
 func main() {
 	fmt.Println("Hello World")
 	setupRoutes()
+
+	var mongoUri = constants.MONGO_URI
 
 	var ctx = context.TODO()
 
