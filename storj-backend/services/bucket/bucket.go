@@ -1,14 +1,14 @@
 package bucket
 
-// Create bucket [mongo]
-// Create bucket storj helper
+// TODO: Create bucket [mongo]
+// TODO: Create bucket storj helper
 
-// Get buckets for renter [mongo]
+// TODO: Get buckets for renter [mongo]
 
-// Get files of bucket for renter [mongo]
+// TODO: Get files of bucket for renter [mongo]
 
-// Empty bucket [mongo]
-// Empty bucket storj helper
+// TODO: Empty bucket [mongo]
+// TODO: Empty bucket storj helper
 
-// Delete bucket [mongo]
-// Delete bucket storj helper
+// TODO: Delete bucket [mongo]
+// TODO: sDelete bucket storj helper

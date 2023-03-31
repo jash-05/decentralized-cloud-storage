@@ -245,6 +245,7 @@ func deleteFileStorjHelper(ctx context.Context,
 	}
 }
 
+// TODO: Delete file from MongoDB
 func DeleteFile(w http.ResponseWriter, r *http.Request) {
 	fmt.Println("File Delete Endpoint Hit")
 
