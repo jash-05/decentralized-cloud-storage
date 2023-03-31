@@ -6,24 +6,6 @@ import (
 	"go.mongodb.org/mongo-driver/bson/primitive"
 )
 
-// Renter metrics:
-
-// - _id: [Mongo ObjectID]
-// - renterID: [Mongo ObjectID from Renter collection]
-// - dailyStorageTrends: [{
-
-//       day: String [date in string, eg. 03/23/2023],
-
-//       valueInGB: Number [eg. 12.1]
-//     }]
-
-// - dailyBandwidthTrends: [{
-
-//       day: String [date in string, eg. 03/23/2023],
-
-//       valueInGB: Number [eg. 12.1]
-//     }]
-
 type File struct {
 	ID             primitive.ObjectID `bson:"_id,omitempty"`
 	Name           string             `bson:"name"`
