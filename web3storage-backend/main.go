@@ -2,14 +2,25 @@ package main
 
 import (
 	"context"
+	"example/web3/constants"
+	"example/web3/db/config"
+	"example/web3/db/models"
 	"fmt"
 	"io"
 	"io/fs"
 	"net/http"
 	"os"
+	"time"
 
+	"github.com/gin-gonic/gin"
 	"github.com/ipfs/go-cid"
 	"github.com/web3-storage/go-w3s-client"
+	"go.mongodb.org/mongo-driver/bson"
+	"go.mongodb.org/mongo-driver/bson/primitive"
+	"go.mongodb.org/mongo-driver/mongo"
+	"go.mongodb.org/mongo-driver/mongo/options"
+	"go.mongodb.org/mongo-driver/mongo/readconcern"
+	"go.mongodb.org/mongo-driver/mongo/writeconcern"
 )
 
 const (
@@ -76,53 +87,126 @@ func getFiles(ctx context.Context, c w3s.Client, stringCid string) []string {
 	return fileUrlsForCid
 }
 
-func uploadFiletoNetwork(w http.ResponseWriter, r *http.Request){
+func uploadFiletoNetwork(w http.ResponseWriter, r *http.Request) {
 
-    fmt.Println("Upload File to web3storage")
-    r.ParseMultipartForm(10 << 20)
+	fmt.Println("Upload File to web3storage")
+	r.ParseMultipartForm(10 << 20)
 
-    file, header, err := r.FormFile("myFile")
-    if err!=nil{
-        fmt.Println("Error retrieving file", err)
-        return
-    }
-    
-    defer file.Close()
-    
-    fmt.Println("Uploading File : ", header.Filename)
+	file, header, err := r.FormFile("myFile")
+	if err != nil {
+		fmt.Println("Error retrieving file", err)
+		return
+	}
 
-    var filename string = header.Filename
+	defer file.Close()
 
-    access, err := w3s.NewClient(w3s.WithToken(mytoken))
-    if err != nil {
-        fmt.Println("Failed to gain access to web3storage client")
-    }
- 
-    ctx := context.Background()
+	fmt.Println("Uploading File : ", header.Filename)
 
-    fileBytes, err:= io.ReadAll(file)
-    f, err := os.Create(filename)
-    byteswritten , err := f.Write(fileBytes)
-    fmt.Println("Bytes written : ", byteswritten)   
+	var filename string = header.Filename
 
-    cid, err := access.Put(ctx,f)
-    if (err!=nil) {
-        fmt.Println("Could not upload file", filename, err)
-    }
-    
-    fmt.Printf("File upload successfull with cid %s",  cid)
+	access, err := w3s.NewClient(w3s.WithToken(mytoken))
+	if err != nil {
+		fmt.Println("Failed to gain access to web3storage client")
+	}
+
+	ctx := context.Background()
+
+	fileBytes, err := io.ReadAll(file)
+	f, err := os.Create(filename)
+	byteswritten, err := f.Write(fileBytes)
+	fmt.Println("Bytes written : ", byteswritten)
+
+	cid, err := access.Put(ctx, f)
+	if err != nil {
+		fmt.Println("Could not upload file", filename, err)
+	}
+
+	fmt.Printf("File upload successfull with cid %s", cid)
 
 }
 
 func setupRoutes() {
-    http.HandleFunc("/upload", uploadFiletoNetwork)
-    http.ListenAndServe(":8087", nil)
+	http.HandleFunc("/upload", uploadFiletoNetwork)
+	http.ListenAndServe(":8087", nil)
 }
 
+func createBucket(c *gin.Context) {
+
+	bucketCollection := config.GetCollection(config.DB, string(models.BUCKETS))
+	renterCollection := config.GetCollection(config.DB, string(models.RENTERS))
+	newBucket := models.NewBucketRequestBody{}
+
+	if err := c.BindJSON(&newBucket); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"message": err.Error()})
+		return
+	}
+
+	primitiveRenterId, err := primitive.ObjectIDFromHex(newBucket.RenterId)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"message": err.Error()})
+		return
+	}
+
+	bucketPayload := models.Bucket{
+		ID:             primitive.NewObjectID(),
+		BucketName:     newBucket.BucketName,
+		RenterId:       primitiveRenterId,
+		CreationTime:   time.Now(),
+		StorageBackend: constants.BACKEND,
+		Files:          make([]models.File, 0),
+	}
+
+	wc := writeconcern.New(writeconcern.WMajority())
+	rc := readconcern.Snapshot()
+	transactionOptions := options.Transaction().SetWriteConcern(wc).SetReadConcern(rc)
+
+	session, err := config.DB.StartSession()
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"message": err.Error()})
+		return
+	}
+
+	defer session.EndSession(context.Background())
+
+	// Transactional
+	callback := func(sessionContext mongo.SessionContext) (interface{}, error) {
+		// Create bucket in bucket collection
+		insertedBucket, err := bucketCollection.InsertOne(sessionContext, bucketPayload)
+		if err != nil {
+			return nil, err
+		}
+
+		// Add bucket in renter collection
+		update := bson.M{
+			"$inc":  bson.M{"totalBuckets": 1},
+			"$push": bson.M{"buckets": insertedBucket.InsertedID},
+		}
+		updateResult, err := renterCollection.UpdateByID(sessionContext, primitiveRenterId, update)
+		if err != nil {
+			return nil, err
+		}
+		fmt.Printf("Updated %v Documents!\n", updateResult.ModifiedCount)
+
+		return insertedBucket, nil
+	}
+
+	_, err = session.WithTransaction(context.Background(), callback, transactionOptions)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"message": err.Error()})
+		return
+	}
+
+	c.IndentedJSON(http.StatusCreated, gin.H{"message": "New Bucket Created Successfully"})
+}
 
 func main() {
 
-	setupRoutes()
+	// setupRoutes()
+
+	router := gin.Default()
+	router.POST("/renter/bucket/create", createBucket)
+	router.Run("localhost:8080")
+
 	// c, err := w3s.NewClient(w3s.WithToken(mytoken))
 	// if err != nil {
 	// 	panic(err)
@@ -139,3 +223,5 @@ func main() {
 	// fileUrlsForCid := getFiles(ctx, c, uploadedCid)
 	// fmt.Printf("The locations of files are: %v\n", fileUrlsForCid)
 }
+
+//
