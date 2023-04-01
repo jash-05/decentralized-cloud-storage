@@ -29,9 +29,22 @@ type Bucket struct {
 	Files          []File             `bson:"files"`
 }
 
+type NewRenterRequestBody struct {
+	FirstName string `json:"firstName"`
+	LastName  string `json:"lastName"`
+	Email     string `json:"email"`
+	Password  string `json:"password"`
+}
+
+type LoginRenterRequestBody struct {
+	Email    string `json:"email"`
+	Password string `json:"password"`
+}
+
 type Renter struct {
 	ID                 primitive.ObjectID   `bson:"_id,omitempty"`
-	Name               string               `bson:"name"`
+	FirstName          string               `bson:"firstName"`
+	LastName           string               `bson:"lastName"`
 	Email              string               `bson:"email"`
 	Password           string               `bson:"password"`
 	Mobile             string               `bson:"mobile"`
