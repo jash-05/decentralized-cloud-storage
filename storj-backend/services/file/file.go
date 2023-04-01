@@ -113,6 +113,7 @@ func UploadFile(w http.ResponseWriter, r *http.Request) {
 		w.Write([]byte("Storj upload failed: " + err.Error()))
 	} else {
 		newFile := models.File{
+			ID:             primitive.NewObjectID(),
 			Name:           fileName,
 			SizeInGB:       float64(header.Size) * 9.31 * math.Pow(10, -10),
 			UploadDateTime: time.Now(),
@@ -129,7 +130,7 @@ func UploadFile(w http.ResponseWriter, r *http.Request) {
 			w.WriteHeader(http.StatusInternalServerError)
 			w.Write([]byte("File info upload to MongoDB failed 1: " + err.Error()))
 		} else {
-			fmt.Println("File info upload to MongoDB successful modified count: ", bucketDocumentUpdateResult.ModifiedCount)
+			fmt.Println("File info upload to MongoDB bucket collection successful modified count: ", bucketDocumentUpdateResult.ModifiedCount)
 		}
 
 		renterDocumentUpdateResult, err := renterCollection.UpdateOne(
@@ -142,10 +143,11 @@ func UploadFile(w http.ResponseWriter, r *http.Request) {
 			w.WriteHeader(http.StatusInternalServerError)
 			w.Write([]byte("File info upload to MongoDB failed 2: " + err.Error()))
 		} else {
-			fmt.Println("File info upload to MongoDB successful modified count: ", renterDocumentUpdateResult.ModifiedCount)
-			w.WriteHeader(http.StatusOK)
-			w.Write([]byte("Uploaded successfully"))
+			fmt.Println("File info upload to MongoDB renter collection successful modified count: ", renterDocumentUpdateResult.ModifiedCount)
 		}
+
+		w.WriteHeader(http.StatusOK)
+		w.Write([]byte("Uploaded successfully"))
 	}
 }
 
@@ -245,7 +247,7 @@ func deleteFileStorjHelper(ctx context.Context,
 	}
 }
 
-// TODO: Delete file from MongoDB
+// TODO: Make the MongoDB delete transactional
 func DeleteFile(w http.ResponseWriter, r *http.Request) {
 	fmt.Println("File Delete Endpoint Hit")
 
@@ -255,18 +257,74 @@ func DeleteFile(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
 		w.Write([]byte("Access to Uplink failed: " + err.Error()))
+		return
 	}
 
 	r.ParseForm()
 
-	fileName := r.Form.Get("fileName")
-	bucketName := r.Form.Get("bucketName")
+	fileId, _ := primitive.ObjectIDFromHex(r.Form.Get("fileId"))
+	bucketId, _ := primitive.ObjectIDFromHex(r.Form.Get("bucketId"))
 
-	err = deleteFileStorjHelper(context.Background(), access, bucketName, fileName)
+	bucket := models.Bucket{}
+	file := models.File{}
+
+	bucketCollection := config.GetCollection(config.DB, "buckets")
+	renterCollection := config.GetCollection(config.DB, "renters")
+
+	bucketFilter := bson.D{{Key: "_id", Value: bucketId}}
+	bucketObject := bucketCollection.FindOne(context.TODO(), bucketFilter)
+	err = bucketObject.Decode(&bucket)
+	if err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+		w.Write([]byte("Bucket fetching from MongoDB failed: " + err.Error()))
+		return
+	}
+
+	var getFilenameFromFilesSlice = func(filesInsideBucket []models.File) string {
+		var matchedFileName = ""
+		for i := 0; i < len(filesInsideBucket); i++ {
+			if filesInsideBucket[i].ID == fileId {
+				matchedFileName := filesInsideBucket[i].Name
+				return matchedFileName
+			}
+		}
+		return matchedFileName
+	}
+
+	fmt.Println("Bucket name: ", bucket.BucketName)
+	fmt.Println("Renter ID: ", bucket.RenterId)
+
+	fileName := getFilenameFromFilesSlice(bucket.Files)
+	fmt.Println("File name: ", fileName)
+
+	err = deleteFileStorjHelper(context.Background(), access, bucket.BucketName, fileName)
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
 		w.Write([]byte("Storj delete failed: " + err.Error()))
+		return
 	} else {
+		bucketDocumentUpdateResult, err := bucketCollection.UpdateByID(context.TODO(), bucketId, bson.M{"$pull": bson.M{"files": bson.M{"_id": fileId}}})
+		if err != nil {
+			w.WriteHeader(http.StatusInternalServerError)
+			w.Write([]byte("File info upload to MongoDB failed 1: " + err.Error()))
+			return
+		} else {
+			fmt.Println("File info update in MongoDB bucket collection successful modified count: ", bucketDocumentUpdateResult.ModifiedCount)
+		}
+
+		renterDocumentUpdateResult, err := renterCollection.UpdateOne(
+			context.TODO(),
+			bson.M{"_id": bucket.RenterId},
+			bson.M{"$inc": bson.M{"totalStorage": -file.SizeInGB, "totalNumberOfFiles": -1}},
+		)
+		if err != nil {
+			w.WriteHeader(http.StatusInternalServerError)
+			w.Write([]byte("File info upload to MongoDB failed 2: " + err.Error()))
+			return
+		} else {
+			fmt.Println("File info update in MongoDB renter collection successful modified count: ", renterDocumentUpdateResult.ModifiedCount)
+		}
+
 		w.WriteHeader(http.StatusOK)
 		w.Write([]byte("Deleted successfully"))
 	}
