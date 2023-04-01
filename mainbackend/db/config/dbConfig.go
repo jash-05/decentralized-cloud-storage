@@ -2,8 +2,9 @@ package config
 
 import (
 	"context"
-	"example/web3/constants"
 	"fmt"
+
+	"example.com/mainbackend/constants"
 
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
