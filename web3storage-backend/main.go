@@ -2,9 +2,6 @@ package main
 
 import (
 	"context"
-	"example/web3/constants"
-	"example/web3/db/config"
-	"example/web3/db/models"
 	"fmt"
 	"io"
 	"io/fs"
@@ -12,6 +9,11 @@ import (
 	"os"
 	"time"
 
+	"example.com/mainbackend/constants"
+	"example.com/mainbackend/db/config"
+	"example.com/mainbackend/db/models"
+
+	"example.com/mainbackend"
 	"github.com/gin-gonic/gin"
 	"github.com/ipfs/go-cid"
 	"github.com/web3-storage/go-w3s-client"
@@ -152,7 +154,7 @@ func createBucket(c *gin.Context) {
 		BucketName:     newBucket.BucketName,
 		RenterId:       primitiveRenterId,
 		CreationTime:   time.Now(),
-		StorageBackend: constants.BACKEND,
+		StorageBackend: constants.WEB3_BACKEND,
 		Files:          make([]models.File, 0),
 	}
 
@@ -245,8 +247,10 @@ func getBucketForRenter(c *gin.Context) {
 }
 
 func main() {
-
 	// setupRoutes()
+
+	message := mainbackend.Hello("Gladys")
+	fmt.Println(message)
 
 	router := gin.Default()
 	router.POST("web3/bucket/create", createBucket)
@@ -269,6 +273,7 @@ func main() {
 	// // uploadedCid := "bafybeieawnqabjulxna3dcyeu3ugqori5dy3sykr6emv6zrtse3eyyshde"
 	// fileUrlsForCid := getFiles(ctx, c, uploadedCid)
 	// fmt.Printf("The locations of files are: %v\n", fileUrlsForCid)
+
 }
 
 //
