@@ -42,3 +42,10 @@ type Renter struct {
 	TotalBandwidth     float64              `bson:"totalBandwidth"`
 	TotalStorageUsed   float64              `bson:"totalStorageUsed"`
 }
+
+type CollectionName string
+
+const (
+	RENTERS CollectionName = "renters"
+	BUCKETS CollectionName = "buckets"
+)
