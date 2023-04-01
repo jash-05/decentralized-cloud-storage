@@ -1,23 +1,40 @@
-import logo from './logo.svg';
 import './App.css';
+import { Route, Routes } from 'react-router-dom';
+import Home from './pages/Home/Home';
+import Dashboard from './pages/Dashboard/Dashboard';
+import Buckets from './pages/Buckets/Buckets';
+import Profile from './pages/Profile/Profile';
+import VerticalTabs from './components/VerticalTabs';
 
 function App() {
   return (
     <div className="App">
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          Edit <code>src/App.js</code> and save to reload.
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
+      <VerticalTabs />
+      <Routes>
+        <Route
+          path='/'
+          element={<Home />}
         >
-          Learn React
-        </a>
-      </header>
+        </Route>
+
+        <Route
+          path='/renter/dashboard/:id'
+          element={<Dashboard />}
+        >
+        </Route>
+
+        <Route
+          path='/renter/buckets'
+          element={<Buckets />}
+        >
+        </Route>
+
+        <Route
+          path='/renter/profile/:id'
+          element={<Profile />}
+        >
+        </Route>
+      </Routes>
     </div>
   );
 }

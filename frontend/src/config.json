@@ -1,3 +1,4 @@
 {
-    "storjBackend" : "http://localhost:8080"
+    "storjBackend": "http://localhost:8080",
+    "web3Backend": "http://localhost:8545"
 }
