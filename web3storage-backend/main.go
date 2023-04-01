@@ -2,15 +2,20 @@ package main
 
 import (
 	"context"
+	"example/web3/constants"
+	"example/web3/db/config"
+	"example/web3/db/models"
 	"fmt"
 	"io"
 	"io/fs"
 	"net/http"
 	"os"
+	"time"
 
 	"github.com/gin-gonic/gin"
 	"github.com/ipfs/go-cid"
 	"github.com/web3-storage/go-w3s-client"
+	"go.mongodb.org/mongo-driver/bson/primitive"
 )
 
 const (
@@ -120,19 +125,43 @@ func setupRoutes() {
 	http.ListenAndServe(":8087", nil)
 }
 
-type test struct {
-	ID        string `json:"id`
-	FirstName string `json:firstName`
-	LastName  string `json:lastName`
+type bucket struct {
+	BucketName     string `json:bucketName`
+	RenterId       string `json:renterId`
+	StorageBackend string `json:storageBackend`
 }
 
-var testJSON = []test{
-	{ID: "1", FirstName: "John", LastName: "Doe"},
-	{ID: "2", FirstName: "Jane", LastName: "Doe"},
-}
+func createBucket(c *gin.Context) {
+	bucketCollection := config.GetCollection(config.DB, "buckets")
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	newBucket := models.NewBucketRequestBody{}
+	defer cancel()
 
-func getTest(c *gin.Context) {
-	c.IndentedJSON(http.StatusOK, testJSON)
+	if err := c.BindJSON(&newBucket); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"message": err.Error()})
+		return
+	}
+
+	primitiveRenterId, err := primitive.ObjectIDFromHex(newBucket.RenterId)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"message": err.Error()})
+		return
+	}
+
+	bucketPayload := models.Bucket{
+		ID:             primitive.NewObjectID(),
+		BucketName:     newBucket.BucketName,
+		RenterId:       primitiveRenterId,
+		CreationTime:   time.Now(),
+		StorageBackend: constants.BACKEND,
+		Files:          make([]models.File, 0),
+	}
+	result, err := bucketCollection.InsertOne(ctx, bucketPayload)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"message": err.Error()})
+		return
+	}
+	c.IndentedJSON(http.StatusCreated, gin.H{"message": "New Bucket Created Successfully", "Data": map[string]interface{}{"data": result}})
 }
 
 func main() {
@@ -140,7 +169,7 @@ func main() {
 	// setupRoutes()
 
 	router := gin.Default()
-	router.GET("/test", getTest)
+	router.POST("/renter/bucket/create", createBucket)
 	router.Run("localhost:8080")
 	// c, err := w3s.NewClient(w3s.WithToken(mytoken))
 	// if err != nil {
@@ -158,3 +187,5 @@ func main() {
 	// fileUrlsForCid := getFiles(ctx, c, uploadedCid)
 	// fmt.Printf("The locations of files are: %v\n", fileUrlsForCid)
 }
+
+//
