@@ -1,7 +1,7 @@
 import axios from 'axios'
-import { storjBackend } from '../config.json'
+import info from '../config.json'
 
-const apiEndpoint = storjBackend + 'renter/'
+const apiEndpoint = info.storjBackend + 'renter/'
 
 export async function getRenterInfo() {
     const { data } = await axios.get(apiEndpoint + "info")
@@ -35,3 +35,12 @@ export async function loginRenter(payload) {
     }
 }
 
+
+export function getCurrentUser() {
+    try {
+        const user = localStorage.getItem('user')
+        return user
+    } catch (e) {
+        console.log(e)
+    }
+}
