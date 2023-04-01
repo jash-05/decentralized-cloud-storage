@@ -125,12 +125,6 @@ func setupRoutes() {
 	http.ListenAndServe(":8087", nil)
 }
 
-type bucket struct {
-	BucketName     string `json:bucketName`
-	RenterId       string `json:renterId`
-	StorageBackend string `json:storageBackend`
-}
-
 func createBucket(c *gin.Context) {
 	bucketCollection := config.GetCollection(config.DB, "buckets")
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
