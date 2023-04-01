@@ -199,12 +199,59 @@ func createBucket(c *gin.Context) {
 	c.IndentedJSON(http.StatusCreated, gin.H{"message": "New Bucket Created Successfully"})
 }
 
+func getFilesForBucket(c *gin.Context) {
+
+	bucketCollection := config.GetCollection(config.DB, string(models.BUCKETS))
+	bucketId := c.Query("bucketId")
+	primitiveBucketId, err := primitive.ObjectIDFromHex(bucketId)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"message": err.Error()})
+		return
+	}
+
+	var bucket models.Bucket
+	err = bucketCollection.FindOne(context.Background(), bson.M{"_id": primitiveBucketId}).Decode(&bucket)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"message": err.Error()})
+		return
+	}
+
+	c.IndentedJSON(http.StatusOK, gin.H{"files": bucket.Files})
+}
+
+func getBucketForRenter(c *gin.Context) {
+
+	bucketCollection := config.GetCollection(config.DB, string(models.BUCKETS))
+	renterId := c.Query("renterId")
+	primitiveRenterId, err := primitive.ObjectIDFromHex(renterId)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"message": err.Error()})
+		return
+	}
+
+	var buckets []models.Bucket
+	cursor, err := bucketCollection.Find(context.Background(), bson.M{"renterId": primitiveRenterId})
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"message": err.Error()})
+		return
+	}
+
+	if err = cursor.All(context.Background(), &buckets); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"message": err.Error()})
+		return
+	}
+
+	c.IndentedJSON(http.StatusOK, gin.H{"buckets": buckets})
+}
+
 func main() {
 
 	// setupRoutes()
 
 	router := gin.Default()
-	router.POST("/renter/bucket/create", createBucket)
+	router.POST("web3/bucket/create", createBucket)
+	router.GET("web3/bucket/getFiles", getFilesForBucket)
+	router.GET("web3/bucket/getBucketsForRenter", getBucketForRenter)
 	router.Run("localhost:8080")
 
 	// c, err := w3s.NewClient(w3s.WithToken(mytoken))
