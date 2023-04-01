@@ -15,7 +15,12 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/ipfs/go-cid"
 	"github.com/web3-storage/go-w3s-client"
+	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
+	"go.mongodb.org/mongo-driver/mongo"
+	"go.mongodb.org/mongo-driver/mongo/options"
+	"go.mongodb.org/mongo-driver/mongo/readconcern"
+	"go.mongodb.org/mongo-driver/mongo/writeconcern"
 )
 
 const (
@@ -126,10 +131,10 @@ func setupRoutes() {
 }
 
 func createBucket(c *gin.Context) {
-	bucketCollection := config.GetCollection(config.DB, "buckets")
-	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+
+	bucketCollection := config.GetCollection(config.DB, string(models.BUCKETS))
+	renterCollection := config.GetCollection(config.DB, string(models.RENTERS))
 	newBucket := models.NewBucketRequestBody{}
-	defer cancel()
 
 	if err := c.BindJSON(&newBucket); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"message": err.Error()})
@@ -150,12 +155,48 @@ func createBucket(c *gin.Context) {
 		StorageBackend: constants.BACKEND,
 		Files:          make([]models.File, 0),
 	}
-	result, err := bucketCollection.InsertOne(ctx, bucketPayload)
+
+	wc := writeconcern.New(writeconcern.WMajority())
+	rc := readconcern.Snapshot()
+	transactionOptions := options.Transaction().SetWriteConcern(wc).SetReadConcern(rc)
+
+	session, err := config.DB.StartSession()
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"message": err.Error()})
 		return
 	}
-	c.IndentedJSON(http.StatusCreated, gin.H{"message": "New Bucket Created Successfully", "Data": map[string]interface{}{"data": result}})
+
+	defer session.EndSession(context.Background())
+
+	// Transactional
+	callback := func(sessionContext mongo.SessionContext) (interface{}, error) {
+		// Create bucket in bucket collection
+		insertedBucket, err := bucketCollection.InsertOne(sessionContext, bucketPayload)
+		if err != nil {
+			return nil, err
+		}
+
+		// Add bucket in renter collection
+		update := bson.M{
+			"$inc":  bson.M{"totalBuckets": 1},
+			"$push": bson.M{"buckets": insertedBucket.InsertedID},
+		}
+		updateResult, err := renterCollection.UpdateByID(sessionContext, primitiveRenterId, update)
+		if err != nil {
+			return nil, err
+		}
+		fmt.Printf("Updated %v Documents!\n", updateResult.ModifiedCount)
+
+		return insertedBucket, nil
+	}
+
+	_, err = session.WithTransaction(context.Background(), callback, transactionOptions)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"message": err.Error()})
+		return
+	}
+
+	c.IndentedJSON(http.StatusCreated, gin.H{"message": "New Bucket Created Successfully"})
 }
 
 func main() {
@@ -165,6 +206,7 @@ func main() {
 	router := gin.Default()
 	router.POST("/renter/bucket/create", createBucket)
 	router.Run("localhost:8080")
+
 	// c, err := w3s.NewClient(w3s.WithToken(mytoken))
 	// if err != nil {
 	// 	panic(err)
