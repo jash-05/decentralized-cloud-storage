@@ -198,7 +198,35 @@ func GetBucketsForRenter(w http.ResponseWriter, r *http.Request) {
 	w.Write(jsonResp)
 }
 
-// TODO: Get files of bucket for renter [mongo]
+func GetFilesForBucket(w http.ResponseWriter, r *http.Request) {
+	fmt.Println("Get Files of Bucket for Renter Endpoint Hit")
+
+	(w).Header().Set("Access-Control-Allow-Origin", "*")
+
+	r.ParseForm()
+	bucketIdString := r.Form.Get("bucketId")
+	bucketIdObjectId, err := primitive.ObjectIDFromHex(bucketIdString)
+	if err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+		w.Write([]byte("Error parsing to ObjectID: " + err.Error()))
+		return
+	}
+
+	bucketCollection := config.GetCollection(config.DB, "buckets")
+
+	var bucket models.Bucket
+	err = bucketCollection.FindOne(context.Background(), bson.M{"_id": bucketIdObjectId}).Decode(&bucket)
+	if err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+		w.Write([]byte("Error finding bucket document in bucket collection: " + err.Error()))
+		return
+	}
+
+	w.WriteHeader(http.StatusOK)
+	w.Header().Set("Content-Type", "application/json")
+	jsonResp, _ := json.MarshalIndent(bucket.Files, "", "  ")
+	w.Write(jsonResp)
+}
 
 // TODO: Empty bucket [mongo]
 // TODO: Empty bucket storj helper
