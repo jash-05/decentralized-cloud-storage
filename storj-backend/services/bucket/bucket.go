@@ -20,8 +20,6 @@ import (
 	"storj.io/uplink"
 )
 
-// TODO: Create bucket [mongo]
-// TODO: Create bucket storj helper
 func createBucketStorjHelper(ctx context.Context,
 	access *uplink.Access, bucketName string) error {
 
@@ -43,7 +41,7 @@ func createBucketStorjHelper(ctx context.Context,
 }
 
 func CreateBucket(w http.ResponseWriter, r *http.Request) {
-	fmt.Println("File Upload Endpoint Hit")
+	fmt.Println("Create Bucket Endpoint Hit")
 
 	(w).Header().Set("Access-Control-Allow-Origin", "*")
 
@@ -148,7 +146,57 @@ func CreateBucket(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-// TODO: Get buckets for renter [mongo]
+func GetBucketsForRenter(w http.ResponseWriter, r *http.Request) {
+	fmt.Println("Get Buckets for Renter Endpoint Hit")
+
+	(w).Header().Set("Access-Control-Allow-Origin", "*")
+
+	r.ParseForm()
+	renterIdString := r.Form.Get("renterId")
+	renterIdObjectId, err := primitive.ObjectIDFromHex(renterIdString)
+	if err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+		w.Write([]byte("Error parsing to ObjectID: " + err.Error()))
+		return
+	}
+
+	bucketCollection := config.GetCollection(config.DB, "buckets")
+
+	var buckets []models.Bucket
+	cursor, err := bucketCollection.Find(context.Background(), bson.M{"renterId": renterIdObjectId})
+	if err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+		w.Write([]byte("Error finding documents in bucket collcetion: " + err.Error()))
+		return
+	}
+
+	/*
+		If the number and size of documents returned by your query exceeds available application memory,
+		your program will crash using cursor.All() method.
+		If you except a large result set, you should consume your cursor iteratively.
+	*/
+	for cursor.Next(context.TODO()) {
+		var bucket models.Bucket
+		err := cursor.Decode(&bucket)
+		if err != nil {
+			w.WriteHeader(http.StatusInternalServerError)
+			w.Write([]byte("Error decoding bucket document: " + err.Error()))
+			return
+		}
+		buckets = append(buckets, bucket)
+	}
+
+	/*
+		When your application no longer needs to use a cursor, close the cursor with the Close() method.
+		This method frees the resources your cursor consumes in both the client application and the MongoDB server.
+	*/
+	defer cursor.Close(context.TODO())
+
+	w.WriteHeader(http.StatusOK)
+	w.Header().Set("Content-Type", "application/json")
+	jsonResp, _ := json.MarshalIndent(buckets, "", "  ")
+	w.Write(jsonResp)
+}
 
 // TODO: Get files of bucket for renter [mongo]
 
