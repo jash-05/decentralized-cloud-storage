@@ -3,6 +3,7 @@ package main
 import (
 	"context"
 	"example/backend/db/config"
+	"example/backend/services/bucket"
 	"example/backend/services/file"
 	"fmt"
 	"net/http"
@@ -11,9 +12,10 @@ import (
 func main() {
 	fmt.Println("Server started on port 8080")
 
-	http.HandleFunc("/renter/file/uploadFile", file.UploadFile)
-	http.HandleFunc("/renter/file/downloadFile", file.DownloadFile)
-	http.HandleFunc("/renter/file/deleteFile", file.DeleteFile)
+	http.HandleFunc("/storj/file/uploadFile", file.UploadFile)
+	http.HandleFunc("/storj/file/downloadFile", file.DownloadFile)
+	http.HandleFunc("/storj/file/deleteFile", file.DeleteFile)
+	http.HandleFunc("/storj/bucket/createBucket", bucket.CreateBucket)
 
 	err := config.DB.Ping(context.TODO(), nil)
 	if err != nil {
