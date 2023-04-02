@@ -16,6 +16,7 @@ func main() {
 	http.HandleFunc("/storj/file/downloadFile", file.DownloadFile)
 	http.HandleFunc("/storj/file/deleteFile", file.DeleteFile)
 	http.HandleFunc("/storj/bucket/createBucket", bucket.CreateBucket)
+	http.HandleFunc("/storj/bucket/getBucketsForRenter", bucket.GetBucketsForRenter)
 
 	err := config.DB.Ping(context.TODO(), nil)
 	if err != nil {
