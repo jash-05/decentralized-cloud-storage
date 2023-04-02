@@ -4,6 +4,8 @@ import (
 	"context"
 	"example/backend/constants"
 	"fmt"
+	"math/rand"
+	"time"
 
 	"storj.io/uplink"
 )
@@ -15,4 +17,19 @@ func GetStorjAccess() (*uplink.Access, error) {
 	}
 
 	return access, nil
+}
+
+const charset = "abcdefghijklmnopqrstuvwxyz" +
+	"ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"
+
+const length = 8
+
+var seededRand *rand.Rand = rand.New(rand.NewSource(time.Now().UnixNano()))
+
+func StringWithCharset() string {
+	b := make([]byte, length)
+	for i := range b {
+		b[i] = charset[seededRand.Intn(len(charset))]
+	}
+	return string(b)
 }

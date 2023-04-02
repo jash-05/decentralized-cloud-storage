@@ -1,7 +1,152 @@
 package bucket
 
+import (
+	"context"
+	"encoding/json"
+	"example/backend/constants"
+	"example/backend/db/config"
+	"example/backend/db/models"
+	"example/backend/utils"
+	"fmt"
+	"net/http"
+	"time"
+
+	"go.mongodb.org/mongo-driver/bson"
+	"go.mongodb.org/mongo-driver/bson/primitive"
+	"go.mongodb.org/mongo-driver/mongo"
+	"go.mongodb.org/mongo-driver/mongo/options"
+	"go.mongodb.org/mongo-driver/mongo/readconcern"
+	"go.mongodb.org/mongo-driver/mongo/writeconcern"
+	"storj.io/uplink"
+)
+
 // TODO: Create bucket [mongo]
 // TODO: Create bucket storj helper
+func createBucketStorjHelper(ctx context.Context,
+	access *uplink.Access, bucketName string) error {
+
+	fmt.Println(bucketName)
+	// Open up the project we will be working with.
+	project, err := uplink.OpenProject(ctx, access)
+	if err != nil {
+		return fmt.Errorf("could not open project: %v", err)
+	}
+	defer project.Close()
+
+	bucket, err := project.CreateBucket(ctx, bucketName)
+	if err != nil {
+		return fmt.Errorf("could not create bucket: %v", err)
+	}
+
+	fmt.Println("Bucket created successfully on Storj: ", bucket.Name)
+	return nil
+}
+
+func CreateBucket(w http.ResponseWriter, r *http.Request) {
+	fmt.Println("File Upload Endpoint Hit")
+
+	(w).Header().Set("Access-Control-Allow-Origin", "*")
+
+	r.ParseForm()
+	originalBucketName := r.Form.Get("bucketName")
+	// bucketNameOnStorj := utils.StringWithCharset() + "_" + aliasBucketName
+	renterIdString := r.Form.Get("renterId")
+
+	renterIdObjectId, err := primitive.ObjectIDFromHex(renterIdString)
+	if err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+		w.Write([]byte("Error parsing to ObjectID: " + err.Error()))
+		return
+	}
+
+	renter := models.Renter{}
+	renterFilter := bson.D{{Key: "_id", Value: renterIdObjectId}}
+	renterCollection := config.GetCollection(config.DB, "renters")
+	renterObj := renterCollection.FindOne(context.TODO(), renterFilter)
+	err = renterObj.Decode(&renter)
+	if err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+		w.Write([]byte("Renter fetching from MongoDB failed: " + err.Error()))
+		return
+	}
+
+	// FIXME: Figure out how to append the bucketName without Storj throwing an error
+	// username := renter.Name
+	// bucketNameOnStorj := username + "-" + originalBucketName
+	// fmt.Println("Bucket name: ", bucketNameOnStorj)
+
+	wc := writeconcern.New(writeconcern.WMajority())
+	rc := readconcern.Snapshot()
+	transactionOptions := options.Transaction().SetWriteConcern(wc).SetReadConcern(rc)
+
+	bucketCollection := config.GetCollection(config.DB, "buckets")
+
+	bucketObj := models.Bucket{BucketName: originalBucketName, BucketNameAlias: originalBucketName, RenterId: renterIdObjectId, CreationTime: time.Now(), StorageBackend: constants.STORJ_STORAGE_BACKEND, Files: []models.File{}}
+
+	session, err := config.DB.StartSession()
+	if err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+		w.Write([]byte("Error creating a transaction session: " + err.Error()))
+		return
+	}
+
+	defer session.EndSession(context.TODO())
+
+	// Transactional
+	callback := func(sessionContext mongo.SessionContext) (interface{}, error) {
+		// Create bucket in bucket collection
+		newInsertedBucket, err := bucketCollection.InsertOne(sessionContext, bucketObj)
+		if err != nil {
+			return nil, fmt.Errorf("error creating new bucket object in bucket collection: %v", err)
+		}
+		newInsertedBucketId := newInsertedBucket.InsertedID.(primitive.ObjectID)
+
+		// Add bucket in renter collection
+		renterDocumentUpdateResult, err := renterCollection.UpdateByID(
+			sessionContext,
+			renterIdObjectId,
+			bson.M{"$push": bson.M{"buckets": newInsertedBucketId}, "$inc": bson.M{"totalBuckets": 1}},
+		)
+		if err != nil {
+			return nil, fmt.Errorf("error updating bucket info in renter document: %v", err)
+		}
+		fmt.Println("Updated renter document fields: ", renterDocumentUpdateResult.ModifiedCount)
+
+		// Setup storj access object
+		access, err := utils.GetStorjAccess()
+		if err != nil {
+			return nil, fmt.Errorf("access to uplink failed: %v", err)
+		}
+
+		// Create bucket on storj
+
+		// FIXME: uncomment this
+		// err = createBucketStorjHelper(context.Background(), access, bucketNameOnStorj)
+		err = createBucketStorjHelper(context.Background(), access, originalBucketName)
+		if err != nil {
+			return nil, fmt.Errorf("error creating bucket on storj: %v", err)
+		}
+
+		return newInsertedBucket.InsertedID, nil
+	}
+
+	newInsertedBucketId, err := session.WithTransaction(context.Background(), callback, transactionOptions)
+	if err != nil {
+		w.WriteHeader(http.StatusOK)
+		w.Write([]byte("Create bucket transaction failed: " + err.Error()))
+		return
+	} else {
+		w.WriteHeader(http.StatusOK)
+		w.Header().Set("Content-Type", "application/json")
+
+		response := make(map[string]string)
+		response["bucketId"] = newInsertedBucketId.(primitive.ObjectID).Hex()
+		jsonResp, _ := json.Marshal(response)
+
+		w.Write(jsonResp)
+		return
+	}
+}
 
 // TODO: Get buckets for renter [mongo]
 
@@ -11,4 +156,4 @@ package bucket
 // TODO: Empty bucket storj helper
 
 // TODO: Delete bucket [mongo]
-// TODO: sDelete bucket storj helper
+// TODO: Delete bucket storj helper

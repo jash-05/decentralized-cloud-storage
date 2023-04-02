@@ -16,12 +16,13 @@ type File struct {
 }
 
 type Bucket struct {
-	ID             primitive.ObjectID `bson:"_id,omitempty"`
-	BucketName     string             `bson:"bucketName"`
-	RenterId       primitive.ObjectID `bson:"renterId"`
-	CreationTime   time.Time          `bson:"creationTime"`
-	StorageBackend string             `bson:"storageBackend"`
-	Files          []File             `bson:"files"`
+	ID              primitive.ObjectID `bson:"_id,omitempty"`
+	BucketName      string             `bson:"bucketName"`
+	BucketNameAlias string             `bson:"bucketNameAlias"`
+	RenterId        primitive.ObjectID `bson:"renterId"`
+	CreationTime    time.Time          `bson:"creationTime"`
+	StorageBackend  string             `bson:"storageBackend"`
+	Files           []File             `bson:"files"`
 }
 
 type Renter struct {
