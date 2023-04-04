@@ -1,0 +1,7 @@
+.landing-page-wrapper{
+    background-image:url('../assets/earth-nasa.jpg');
+    height: 100vh;
+    
+    background:linear-gradient(0deg, rgba(78, 74, 76, 0.3), rgba(65, 61, 63, 0.3)), url('../assets/earth-nasa.jpg');
+    background-size: cover;
+}
