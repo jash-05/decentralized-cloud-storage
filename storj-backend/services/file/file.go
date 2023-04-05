@@ -62,6 +62,7 @@ func uploadFileStorjHelper(ctx context.Context,
 	return nil
 }
 
+// TODO: Add functionality to upload multiple files.
 func UploadFile(w http.ResponseWriter, r *http.Request) {
 	fmt.Println("File Upload Endpoint Hit")
 
