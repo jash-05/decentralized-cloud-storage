@@ -5,8 +5,8 @@ import '../../styles/Home.css'
 const Home = () => {
     return (
         <div className='landing-page-wrapper'>
-            <Banner text="Decentralized Storage Made Easy" />
-            <p>Store your files on the blockchain and access them anywhere.</p>
+            <Banner style={{ color: "white" }} text="Decentralized Storage Made Easy" />
+            <h2 style={{ color: 'white' }}>Store your files on the blockchain and access them anywhere.</h2>
         </div>
     )
 }

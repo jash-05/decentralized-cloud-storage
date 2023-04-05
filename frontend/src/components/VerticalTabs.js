@@ -5,6 +5,7 @@ import Tab from '@mui/material/Tab';
 import Typography from '@mui/material/Typography';
 import Box from '@mui/material/Box';
 import Buckets from '../pages/Buckets/Buckets';
+import { Container } from '@mui/material';
 
 function TabPanel(props) {
     const { children, value, index, ...other } = props;
@@ -16,13 +17,14 @@ function TabPanel(props) {
             id={`vertical-tabpanel-${index}`}
             aria-labelledby={`vertical-tab-${index}`}
             {...other}
+            style={{ width: '100%' }}
         >
             {value === index && (
                 <Box sx={{ p: 3 }}>
                     <Typography>{children}</Typography>
                 </Box>
             )}
-        </div>
+        </div >
     );
 }
 
@@ -68,10 +70,10 @@ export default function VerticalTabs() {
                 <Tab label="Logout" {...a11yProps(3)} />
             </Tabs>
             <TabPanel value={value} index={0}>
-                Dashboard
+                <div class="container display-wrapper"> Dashboard</div>
             </TabPanel>
             <TabPanel value={value} index={1}>
-                <Buckets />
+                <Container class="container display-wrapper"><Buckets /></Container>
             </TabPanel>
             <TabPanel value={value} index={2}>
                 Profile
