@@ -91,7 +91,7 @@ func CreateBucket(w http.ResponseWriter, r *http.Request) {
 
 	defer session.EndSession(context.TODO())
 
-	// Transactional
+	// Transaction
 	callback := func(sessionContext mongo.SessionContext) (interface{}, error) {
 		// Create bucket in bucket collection
 		newInsertedBucket, err := bucketCollection.InsertOne(sessionContext, bucketObj)
