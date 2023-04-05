@@ -19,14 +19,12 @@ func GetStorjAccess() (*uplink.Access, error) {
 	return access, nil
 }
 
-const charset = "abcdefghijklmnopqrstuvwxyz" +
-	"ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"
+func GenerateRandomCharsetId() string {
+	const charset = "abcdefghijklmnopqrstuvwxyz0123456789"
+	const length = 8
 
-const length = 8
+	var seededRand *rand.Rand = rand.New(rand.NewSource(time.Now().UnixNano()))
 
-var seededRand *rand.Rand = rand.New(rand.NewSource(time.Now().UnixNano()))
-
-func StringWithCharset() string {
 	b := make([]byte, length)
 	for i := range b {
 		b[i] = charset[seededRand.Intn(len(charset))]

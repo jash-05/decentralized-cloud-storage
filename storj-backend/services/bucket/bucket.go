@@ -9,6 +9,7 @@ import (
 	"example/backend/utils"
 	"fmt"
 	"net/http"
+	"strings"
 	"time"
 
 	"go.mongodb.org/mongo-driver/bson"
@@ -40,6 +41,7 @@ func createBucketStorjHelper(ctx context.Context,
 	return nil
 }
 
+// BUG: Create username in Renter object on renter signup using the utils.GenerateRandomCharsetId() function.
 func CreateBucket(w http.ResponseWriter, r *http.Request) {
 	fmt.Println("Create Bucket Endpoint Hit")
 
@@ -47,9 +49,9 @@ func CreateBucket(w http.ResponseWriter, r *http.Request) {
 
 	r.ParseForm()
 	originalBucketName := r.Form.Get("bucketName")
-	// bucketNameOnStorj := utils.StringWithCharset() + "_" + aliasBucketName
-	renterIdString := r.Form.Get("renterId")
+	fmt.Println("Original bucket name: ", originalBucketName)
 
+	renterIdString := r.Form.Get("renterId")
 	renterIdObjectId, err := primitive.ObjectIDFromHex(renterIdString)
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
@@ -68,10 +70,9 @@ func CreateBucket(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// FIXME: Figure out how to append the bucketName without Storj throwing an error
-	// username := renter.Name
-	// bucketNameOnStorj := username + "-" + originalBucketName
-	// fmt.Println("Bucket name: ", bucketNameOnStorj)
+	username := renter.Username
+	bucketNameOnStorj := username + "-" + strings.ToLower(originalBucketName)
+	fmt.Println("Bucket name on Storj: ", bucketNameOnStorj)
 
 	wc := writeconcern.New(writeconcern.WMajority())
 	rc := readconcern.Snapshot()
@@ -79,7 +80,7 @@ func CreateBucket(w http.ResponseWriter, r *http.Request) {
 
 	bucketCollection := config.GetCollection(config.DB, "buckets")
 
-	bucketObj := models.Bucket{BucketName: originalBucketName, BucketNameAlias: originalBucketName, RenterId: renterIdObjectId, CreationTime: time.Now(), StorageBackend: constants.STORJ_STORAGE_BACKEND, Files: []models.File{}}
+	bucketObj := models.Bucket{BucketName: bucketNameOnStorj, BucketNameAlias: originalBucketName, RenterId: renterIdObjectId, CreationTime: time.Now(), StorageBackend: constants.STORJ_STORAGE_BACKEND, Files: []models.File{}}
 
 	session, err := config.DB.StartSession()
 	if err != nil {
@@ -117,10 +118,7 @@ func CreateBucket(w http.ResponseWriter, r *http.Request) {
 		}
 
 		// Create bucket on storj
-
-		// FIXME: uncomment this
-		// err = createBucketStorjHelper(context.Background(), access, bucketNameOnStorj)
-		err = createBucketStorjHelper(context.Background(), access, originalBucketName)
+		err = createBucketStorjHelper(context.Background(), access, bucketNameOnStorj)
 		if err != nil {
 			return nil, fmt.Errorf("error creating bucket on storj: %v", err)
 		}
