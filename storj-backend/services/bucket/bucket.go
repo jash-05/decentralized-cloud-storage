@@ -41,7 +41,6 @@ func createBucketStorjHelper(ctx context.Context,
 	return nil
 }
 
-// BUG: Create username in Renter object on renter signup using the utils.GenerateRandomCharsetId() function.
 func CreateBucket(w http.ResponseWriter, r *http.Request) {
 	fmt.Println("Create Bucket Endpoint Hit")
 
