@@ -10,6 +10,7 @@ import Navbar from './components/Navbar';
 import ResponsiveDrawer from './components/ResponsiveDrawer';
 import LeftPanel from './components/LeftPanel';
 import Files from './pages/Buckets/Files';
+import Login from './pages/Login/Login';
 // import { useHistory } from 'react-router-dom';
 
 function App() {
@@ -38,12 +39,17 @@ function App() {
           element={<Home />}
         >
         </Route>
+        <Route
+          path='/login'
+          element={<Login />}
+        >
+        </Route>
       </Routes>
 
 
       {/* <Stage selectedTab /> */}
 
-      {location.pathname !== '/' &&
+      {!['/', '/login', '/register'].includes(location.pathname) &&
         <div className="content-wrapper">
           <LeftPanel selectedTab={selectedTab} handleSelectedTab={handleSelectedTab} />
           <div className='stage-wrapper'>
