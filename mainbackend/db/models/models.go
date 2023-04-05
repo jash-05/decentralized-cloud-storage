@@ -45,6 +45,7 @@ type Renter struct {
 	ID                 primitive.ObjectID   `bson:"_id,omitempty"`
 	FirstName          string               `bson:"firstName"`
 	LastName           string               `bson:"lastName"`
+	Username           string               `bson:"username"`
 	Email              string               `bson:"email"`
 	Password           string               `bson:"password"`
 	Mobile             string               `bson:"mobile"`

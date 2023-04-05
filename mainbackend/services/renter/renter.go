@@ -6,6 +6,7 @@ import (
 
 	"example.com/mainbackend/db/config"
 	"example.com/mainbackend/db/models"
+	"example.com/mainbackend/utils"
 	"github.com/gin-gonic/gin"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/mongo"
@@ -49,6 +50,7 @@ func Register(c *gin.Context) {
 	renterPayload := models.Renter{
 		FirstName: newRenter.FirstName,
 		LastName:  newRenter.LastName,
+		Username:  utils.GenerateRandomCharsetId(),
 		Email:     newRenter.Email,
 		Password:  passwordHash,
 	}
