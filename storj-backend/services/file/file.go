@@ -15,6 +15,10 @@ import (
 
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
+	"go.mongodb.org/mongo-driver/mongo"
+	"go.mongodb.org/mongo-driver/mongo/options"
+	"go.mongodb.org/mongo-driver/mongo/readconcern"
+	"go.mongodb.org/mongo-driver/mongo/writeconcern"
 	"storj.io/uplink"
 )
 
@@ -58,7 +62,6 @@ func uploadFileStorjHelper(ctx context.Context,
 	return nil
 }
 
-// TODO: Make the MongoDB upload transactional
 func UploadFile(w http.ResponseWriter, r *http.Request) {
 	fmt.Println("File Upload Endpoint Hit")
 
@@ -102,53 +105,77 @@ func UploadFile(w http.ResponseWriter, r *http.Request) {
 		fmt.Println(err)
 	}
 
-	access, err := utils.GetStorjAccess()
-	if err != nil {
-		w.WriteHeader(http.StatusInternalServerError)
-		w.Write([]byte("Access to uplink failed: " + err.Error()))
+	newFileObj := models.File{
+		ID:             primitive.NewObjectID(),
+		Name:           fileName,
+		SizeInGB:       float64(header.Size) * 9.31 * math.Pow(10, -10),
+		UploadDateTime: time.Now(),
+		Type:           header.Header.Get("Content-Type"),
 	}
 
-	err = uploadFileStorjHelper(context.Background(), access, bucket.BucketName, fileName, fileBytes)
+	wc := writeconcern.New(writeconcern.WMajority())
+	rc := readconcern.Snapshot()
+	transactionOptions := options.Transaction().SetWriteConcern(wc).SetReadConcern(rc)
+
+	session, err := config.DB.StartSession()
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
-		w.Write([]byte("Storj upload failed: " + err.Error()))
-	} else {
-		newFile := models.File{
-			ID:             primitive.NewObjectID(),
-			Name:           fileName,
-			SizeInGB:       float64(header.Size) * 9.31 * math.Pow(10, -10),
-			UploadDateTime: time.Now(),
-			Type:           header.Header.Get("Content-Type"),
-		}
+		w.Write([]byte("Error creating a transaction session: " + err.Error()))
+		return
+	}
 
+	defer session.EndSession(context.TODO())
+
+	// Transaction
+	callback := func(sessionContext mongo.SessionContext) (interface{}, error) {
+		// Add file info to bucket collection
 		bucketDocumentUpdateResult, err := bucketCollection.UpdateOne(
-			context.TODO(),
+			sessionContext,
 			bson.M{"_id": bucketId},
-			bson.M{"$push": bson.M{"files": newFile}},
+			bson.M{"$push": bson.M{"files": newFileObj}},
 		)
 
 		if err != nil {
-			w.WriteHeader(http.StatusInternalServerError)
-			w.Write([]byte("File info upload to MongoDB failed 1: " + err.Error()))
-		} else {
-			fmt.Println("File info upload to MongoDB bucket collection successful modified count: ", bucketDocumentUpdateResult.ModifiedCount)
+			return nil, fmt.Errorf("error adding file to bucket collection: %v", err)
 		}
+		fmt.Println("File upload added bucket collection successfully, modified count: ", bucketDocumentUpdateResult.ModifiedCount)
 
+		// Update file metrics to renter collection
 		renterDocumentUpdateResult, err := renterCollection.UpdateOne(
-			context.TODO(),
+			sessionContext,
 			bson.M{"_id": bucket.RenterId},
-			bson.M{"$inc": bson.M{"totalStorage": newFile.SizeInGB, "totalNumberOfFiles": 1}},
+			bson.M{"$inc": bson.M{"totalStorage": newFileObj.SizeInGB, "totalNumberOfFiles": 1}},
 		)
 
 		if err != nil {
-			w.WriteHeader(http.StatusInternalServerError)
-			w.Write([]byte("File info upload to MongoDB failed 2: " + err.Error()))
-		} else {
-			fmt.Println("File info upload to MongoDB renter collection successful modified count: ", renterDocumentUpdateResult.ModifiedCount)
+			return nil, fmt.Errorf("error adding file metrics to renter collection: %v", err)
+		}
+		fmt.Println("File upload metrics added to renter collection successfully, modified count: ", renterDocumentUpdateResult.ModifiedCount)
+
+		// Setup storj access object
+		access, err := utils.GetStorjAccess()
+		if err != nil {
+			return nil, fmt.Errorf("access to uplink failed: %v", err)
 		}
 
+		// Create new file on Storj
+		err = uploadFileStorjHelper(context.Background(), access, bucket.BucketName, fileName, fileBytes)
+		if err != nil {
+			return nil, fmt.Errorf("error uploading file on storj: %v", err)
+		}
+
+		return nil, nil
+	}
+
+	_, err = session.WithTransaction(context.Background(), callback, transactionOptions)
+	if err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+		w.Write([]byte("Error uploading file: " + err.Error()))
+		return
+	} else {
 		w.WriteHeader(http.StatusOK)
-		w.Write([]byte("Uploaded successfully"))
+		w.Write([]byte("File upload successful"))
+		return
 	}
 }
 
@@ -248,7 +275,6 @@ func deleteFileStorjHelper(ctx context.Context,
 	}
 }
 
-// TODO: Make the MongoDB delete transactional
 func DeleteFile(w http.ResponseWriter, r *http.Request) {
 	fmt.Println("File Delete Endpoint Hit")
 
@@ -298,35 +324,56 @@ func DeleteFile(w http.ResponseWriter, r *http.Request) {
 	fileName := getFilenameFromFilesSlice(bucket.Files)
 	fmt.Println("File name: ", fileName)
 
-	err = deleteFileStorjHelper(context.Background(), access, bucket.BucketName, fileName)
+	wc := writeconcern.New(writeconcern.WMajority())
+	rc := readconcern.Snapshot()
+	transactionOptions := options.Transaction().SetWriteConcern(wc).SetReadConcern(rc)
+
+	session, err := config.DB.StartSession()
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
-		w.Write([]byte("Storj delete failed: " + err.Error()))
+		w.Write([]byte("Error creating a transaction session: " + err.Error()))
 		return
-	} else {
-		bucketDocumentUpdateResult, err := bucketCollection.UpdateByID(context.TODO(), bucketId, bson.M{"$pull": bson.M{"files": bson.M{"_id": fileId}}})
-		if err != nil {
-			w.WriteHeader(http.StatusInternalServerError)
-			w.Write([]byte("File info upload to MongoDB failed 1: " + err.Error()))
-			return
-		} else {
-			fmt.Println("File info update in MongoDB bucket collection successful modified count: ", bucketDocumentUpdateResult.ModifiedCount)
-		}
+	}
 
+	defer session.EndSession(context.TODO())
+
+	// Transaction
+	callback := func(sessionContext mongo.SessionContext) (interface{}, error) {
+		// Delete file from bucket document
+		bucketDocumentUpdateResult, err := bucketCollection.UpdateByID(sessionContext, bucketId, bson.M{"$pull": bson.M{"files": bson.M{"_id": fileId}}})
+		if err != nil {
+			return nil, fmt.Errorf("error deleting file from bucket in bucket collection: %v", err)
+		}
+		fmt.Println("File info deleted from bucket collection, successful modified count: ", bucketDocumentUpdateResult.ModifiedCount)
+
+		// Delete file metrics from renter document
 		renterDocumentUpdateResult, err := renterCollection.UpdateOne(
-			context.TODO(),
+			sessionContext,
 			bson.M{"_id": bucket.RenterId},
 			bson.M{"$inc": bson.M{"totalStorage": -file.SizeInGB, "totalNumberOfFiles": -1}},
 		)
 		if err != nil {
-			w.WriteHeader(http.StatusInternalServerError)
-			w.Write([]byte("File info upload to MongoDB failed 2: " + err.Error()))
-			return
-		} else {
-			fmt.Println("File info update in MongoDB renter collection successful modified count: ", renterDocumentUpdateResult.ModifiedCount)
+			return nil, fmt.Errorf("error deleting file metrics from renter collection: %v", err)
+		}
+		fmt.Println("File metrics deleted from renter collection successful, modified count: ", renterDocumentUpdateResult.ModifiedCount)
+
+		// Delete file from Storj
+		err = deleteFileStorjHelper(context.Background(), access, bucket.BucketName, fileName)
+		if err != nil {
+			return nil, fmt.Errorf("error deleting file on storj: %v", err)
 		}
 
+		return nil, nil
+	}
+
+	_, err = session.WithTransaction(context.Background(), callback, transactionOptions)
+	if err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+		w.Write([]byte("Error in transaction: " + err.Error()))
+		return
+	} else {
 		w.WriteHeader(http.StatusOK)
-		w.Write([]byte("Deleted successfully"))
+		w.Write([]byte("File deleted successfully"))
+		return
 	}
 }
