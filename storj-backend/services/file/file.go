@@ -58,6 +58,7 @@ func uploadFileStorjHelper(ctx context.Context,
 	return nil
 }
 
+// TODO: Make the MongoDB upload transactional
 func UploadFile(w http.ResponseWriter, r *http.Request) {
 	fmt.Println("File Upload Endpoint Hit")
 
