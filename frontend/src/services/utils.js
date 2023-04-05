@@ -1,5 +1,5 @@
 import axios from 'axios'
-import { GET_BACKEND_URL, HTTP_METHODS } from '../../constants/constants'
+import { GET_BACKEND_URL, HTTP_METHODS } from '../constants/constants'
 
 const printErrorMessage = (err, requestUrl, method) => {
     console.log(`Error occured: ${err}`)
