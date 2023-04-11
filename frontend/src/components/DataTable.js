@@ -2,11 +2,11 @@ import * as React from 'react';
 import { DataGrid } from '@mui/x-data-grid';
 
 const columns = [
-    { field: 'id', headerName: 'ID', width: 160 },
-    { field: 'name', headerName: 'Name', width: 160 },
-    { field: 'network', headerName: 'Network', width: 160 },
-    { field: 'created', headerName: 'Created On', width: 160 },
-    { field: 'objects', headerName: 'Objects', width: 160 },
+    { field: 'id', headerName: 'ID', width: 'auto' },
+    { field: 'name', headerName: 'Name', width: 'auto' },
+    { field: 'network', headerName: 'Network', width: 'auto' },
+    { field: 'created', headerName: 'Created On', width: 'auto' },
+    { field: 'objects', headerName: 'Objects', width: 'auto' },
 ];
 
 // const rows = [

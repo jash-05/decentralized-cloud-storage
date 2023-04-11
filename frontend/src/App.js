@@ -9,6 +9,7 @@ import VerticalTabs from './components/VerticalTabs';
 import Navbar from './components/Navbar';
 import ResponsiveDrawer from './components/ResponsiveDrawer';
 import LeftPanel from './components/LeftPanel';
+import Files from './pages/Buckets/Files';
 // import { useHistory } from 'react-router-dom';
 
 function App() {
@@ -59,6 +60,19 @@ function App() {
                 element={<Buckets />}
               >
               </Route>
+
+              <Route
+                path='/buckets/renter/:renterId'
+                element={<Buckets />}
+              >
+              </Route>
+
+              <Route
+                path='/buckets/bucket/:bucketId'
+                element={<Files />}
+              >
+              </Route>
+
 
               <Route
                 path='/profile/'
