@@ -12,7 +12,8 @@ const style = {
     top: '50%',
     left: '50%',
     transform: 'translate(-50%, -50%)',
-    width: 400,
+    width: 600,
+    minHeight: 400,
     bgcolor: 'background.paper',
     border: 'none',
     boxShadow: 24,
@@ -45,19 +46,24 @@ export default function BasicModal({ open, handleClose, network, handleCreateNew
                         <Typography id="transition-modal-title" variant="h4" component="h2">
                             Create New Bucket
                         </Typography>
-                        <Typography id="transition-modal-description" sx={{ mt: 2 }}>
+                        <br />
+                        <br />
+                        <Typography id="transition-modal-description" sx={{ mt: 4 }}>
                             Type in a name for your new bucket.
                         </Typography>
+                        <br />
                         <InputField
                             handleNameChange={handleNameChange}
                             placeholder="test-bucket" />
-                        <Typography id="transition-modal-description" sx={{ mt: 2 }}>
+                        <Typography id="transition-modal-description" sx={{ mt: 4 }}>
                             Choose your preferred network.
                         </Typography>
                         <SelectOptions network={network} handleNetworkChange={handleNetworkChange} />
                         <br />
                         <br />
-                        <Button variant="contained" onClick={handleCreateNewBucket}>Create</Button>
+                        <div style={{ display: 'flex', justifyContent: 'center' }}>
+                            <Button sx={{ fontSize: "20px" }} variant="contained" onClick={handleCreateNewBucket}>Create</Button>
+                        </div>
                     </Box>
                 </Fade>
             </Modal>

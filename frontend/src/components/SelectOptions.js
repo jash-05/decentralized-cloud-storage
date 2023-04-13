@@ -200,9 +200,9 @@ CustomSelect.propTypes = {
 
 export default function SelectOptions({ handleNetworkChange }) {
   return (
-    <select onChange={handleNetworkChange} >
-      <option value="Storj">Storj</option>
-      <option value="IPFS">IPFS</option>
+    <select style={{ minWidth: '150px', minHeight: '50px', borderRadius: '5px' }} onChange={handleNetworkChange} >
+      <option style={{ minWidth: '150px', minHeight: '50px', borderRadius: '5px' }} value="Storj">Storj</option>
+      <option style={{ minWidth: '150px', minHeight: '50px', borderRadius: '5px' }} value="IPFS">IPFS</option>
       {/* <StyledOption value="Storj">Storj</StyledOption>
       <StyledOption value="IPFS">IPFS</StyledOption> */}
     </select>

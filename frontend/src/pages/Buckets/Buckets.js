@@ -9,6 +9,7 @@ import DataTable from '../../components/DataTable'
 import { Container } from '@mui/system'
 import BasicModal from '../../components/BasicModal'
 import { ListGroup, ListGroupItem } from 'react-bootstrap'
+import BasicTable from '../../components/BasicTable'
 
 const Buckets = () => {
 
@@ -23,7 +24,7 @@ const Buckets = () => {
 
     const handleBucketNameChange = (e) => {
         console.log(e.target.value)
-        // setBucketName(e.target.value)
+        setBucketName(e.target.value)
     }
     const handleNetworkChange = (e) => {
         console.log(e.target.value)
@@ -68,11 +69,9 @@ const Buckets = () => {
 
     const fetchBucketsforRenter = async () => {
         const id = getCurrentUser()
-        //Call API from StorJ
-        //Call API from Web3
-
-        const { data } = await getBucketsforRenter()
-        console.log(data)
+        const data = await getBucketsforRenter("64228d510c4f6ffa8401ea01")
+        // console.log("hete", data)
+        setBucketsData(data)
 
     }
 
@@ -94,14 +93,15 @@ const Buckets = () => {
             </div>
             <br />
             <div className='buckets-list-wrapper'>
+
+                <BasicTable page={"bucket"} headers={["Name", "Network", "Objects", "Created"]} rowData={bucketsData} />
                 {/* <DataTable data={bucketsData} /> */}
-                <table align='left' className="table-wrapper">
+                {/* <table borderalign='left' className="table-wrapper">
 
                     <ListGroup>
                         <ListGroupItem>
                             <thead>
                                 <tr>
-
                                     <th>Name</th>
                                     <th>Network</th>
                                     <th>Created</th>
@@ -125,7 +125,7 @@ const Buckets = () => {
                         }
 
                     </ListGroup>;
-                </table>
+                </table> */}
 
                 {/* <ListGroupItem href="#" active>
                          Link1
