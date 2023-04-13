@@ -11,7 +11,7 @@ import ResponsiveDrawer from './components/ResponsiveDrawer';
 import LeftPanel from './components/LeftPanel';
 import Files from './pages/Buckets/Files';
 import Login from './pages/Login/Login';
-import Files from './pages/Buckets/Files';
+
 // import { useHistory } from 'react-router-dom';
 
 function App() {
