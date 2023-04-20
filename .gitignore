@@ -1,2 +1,15 @@
 /pkg
-/bin
+/bin.DS_Store
+experiments/.DS_Store
+experiments/creds.js
+experiments/dummy-frontend/.gitignore
+experiments/new_test/
+experiments/test-storj/.DS_Store
+experiments/test-storj/.gitignore
+experiments/web3-storage/node_modules/
+mainbackend/.DS_Store
+mainbackend/db/.DS_Store
+mainbackend/tmp/
+web3storage-backend/constants/
+web3storage-backend/go.sum
+web3storage-backend/tmp/
