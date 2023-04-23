@@ -42,19 +42,19 @@ type LoginRenterRequestBody struct {
 }
 
 type Renter struct {
-	ID                 primitive.ObjectID   `bson:"_id,omitempty"`
-	FirstName          string               `bson:"firstName"`
-	LastName           string               `bson:"lastName"`
-	Username           string               `bson:"username"`
-	Email              string               `bson:"email"`
-	Password           string               `bson:"password"`
-	Mobile             string               `bson:"mobile"`
-	Location           string               `bson:"location"`
-	Buckets            []primitive.ObjectID `bson:"buckets"`
-	TotalBuckets       int                  `bson:"totalBuckets"`
-	TotalNumberOfFiles int                  `bson:"totalNumberOfFiles"`
-	TotalBandwidth     float64              `bson:"totalBandwidth"`
-	TotalStorageUsed   float64              `bson:"totalStorageUsed"`
+	ID                 primitive.ObjectID   `bson:"_id,omitempty" json:"renterId"`
+	FirstName          string               `bson:"firstName" json:"firstName"`
+	LastName           string               `bson:"lastName" json:"lastName"`
+	Username           string               `bson:"username" json:"userName"`
+	Email              string               `bson:"email" json:"email"`
+	Password           string               `bson:"password" json:"-"`
+	Mobile             string               `bson:"mobile" json:"mobile"`
+	Location           string               `bson:"location" json:"location"`
+	Buckets            []primitive.ObjectID `bson:"buckets" json:"-"`
+	TotalBuckets       int                  `bson:"totalBuckets" json:"totalBuckets"`
+	TotalNumberOfFiles int                  `bson:"totalNumberOfFiles" json:"totalNumberOfFiles"`
+	TotalBandwidth     float64              `bson:"totalBandwidth" json:"totalBandwidth"`
+	TotalStorageUsed   float64              `bson:"totalStorageUsed" json:"totalStorageUsed"`
 }
 
 type CollectionName string
