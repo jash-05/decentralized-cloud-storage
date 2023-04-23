@@ -100,6 +100,47 @@ func Login(c *gin.Context) {
 func UpdateProfile(c *gin.Context) {
 	fmt.Println("UpdateProfile")
 
+	renterCollection := config.GetCollection(config.DB, string(models.RENTERS))
+	newRenter := models.UpdateRenterRequestBody{}
+
+	if err := c.BindJSON(&newRenter); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"message": err.Error()})
+		return
+	}
+
+	primitiveRenterId, err := primitive.ObjectIDFromHex(newRenter.RenterId)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"message": err.Error()})
+		return
+	}
+
+	// check if email is already in use
+	renterDocument := models.Renter{}
+	err = renterCollection.FindOne(c, bson.M{"email": newRenter.Email}).Decode(&renterDocument)
+	if err != mongo.ErrNoDocuments {
+		if err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"message": err.Error()})
+			return
+		}
+		if renterDocument.ID != primitiveRenterId {
+			c.JSON(http.StatusConflict, gin.H{"message": "Email is already in use"})
+			return
+		}
+	}
+
+	updatedRenter := bson.M{"firstName": newRenter.FirstName, "lastName": newRenter.LastName, "email": newRenter.Email}
+
+	result, err := renterCollection.UpdateOne(context.Background(), bson.M{"_id": primitiveRenterId}, bson.M{"$set": updatedRenter})
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"message": err.Error()})
+		return
+	}
+	if result.MatchedCount < 1 {
+		c.JSON(http.StatusInternalServerError, gin.H{"message": "Renter not found in database"})
+		return
+	}
+	c.JSON(http.StatusOK, gin.H{"message": "Updated successfully"})
+
 }
 
 // function to get user profile
