@@ -1,6 +1,7 @@
 package renter
 
 import (
+	"context"
 	"fmt"
 	"net/http"
 
@@ -9,6 +10,7 @@ import (
 	"example.com/mainbackend/utils"
 	"github.com/gin-gonic/gin"
 	"go.mongodb.org/mongo-driver/bson"
+	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
 	"golang.org/x/crypto/bcrypt"
 )
@@ -97,9 +99,27 @@ func Login(c *gin.Context) {
 // function to update user profile
 func UpdateProfile(c *gin.Context) {
 	fmt.Println("UpdateProfile")
+
 }
 
 // function to get user profile
 func GetProfile(c *gin.Context) {
 	fmt.Println("GetProfile")
+
+	renterCollection := config.GetCollection(config.DB, string(models.RENTERS))
+	renterId := c.Query("renterId")
+	primitiveRenterId, err := primitive.ObjectIDFromHex(renterId)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"message": err.Error()})
+		return
+	}
+
+	var renter models.Renter
+	err = renterCollection.FindOne(context.Background(), bson.M{"_id": primitiveRenterId}).Decode(&renter)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"message": err.Error()})
+		return
+	}
+
+	c.IndentedJSON(http.StatusOK, gin.H{"renter": renter})
 }
