@@ -36,6 +36,13 @@ type NewRenterRequestBody struct {
 	Password  string `json:"password"`
 }
 
+type UpdateRenterRequestBody struct {
+	RenterId  string `json:"renterId"`
+	FirstName string `json:"firstName"`
+	LastName  string `json:"lastName"`
+	Email     string `json:"email"`
+}
+
 type LoginRenterRequestBody struct {
 	Email    string `json:"email"`
 	Password string `json:"password"`
