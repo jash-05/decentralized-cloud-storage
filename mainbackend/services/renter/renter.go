@@ -55,6 +55,7 @@ func Register(c *gin.Context) {
 		Username:  utils.GenerateRandomCharsetId(),
 		Email:     newRenter.Email,
 		Password:  passwordHash,
+		Buckets:   make([]primitive.ObjectID, 0),
 	}
 
 	_, err = renterCollection.InsertOne(c, renterPayload)

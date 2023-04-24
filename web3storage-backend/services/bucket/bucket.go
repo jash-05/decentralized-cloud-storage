@@ -131,3 +131,57 @@ func GetBucketsForRenter(c *gin.Context) {
 
 	c.IndentedJSON(http.StatusOK, gin.H{"buckets": buckets})
 }
+
+func DeleteBucket(c *gin.Context) {
+
+	bucketCollection := config.GetCollection(config.DB, string(models.BUCKETS))
+	renterCollection := config.GetCollection(config.DB, string(models.RENTERS))
+	bucketId := c.Query("bucketId")
+	primitiveBucketId, err := primitive.ObjectIDFromHex(bucketId)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"message": err.Error()})
+		return
+	}
+
+	wc := writeconcern.New(writeconcern.WMajority())
+	rc := readconcern.Snapshot()
+	transactionOptions := options.Transaction().SetWriteConcern(wc).SetReadConcern(rc)
+
+	session, err := config.DB.StartSession()
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"message": err.Error()})
+		return
+	}
+
+	defer session.EndSession(context.Background())
+
+	// Transactional
+	callback := func(sessionContext mongo.SessionContext) (interface{}, error) {
+		// Delete bucket from bucket collection
+		_, err := bucketCollection.DeleteOne(sessionContext, bson.M{"_id": primitiveBucketId})
+		if err != nil {
+			return nil, err
+		}
+
+		// Delete bucket from renter collection
+		update := bson.M{
+			"$inc":  bson.M{"totalBuckets": -1},
+			"$pull": bson.M{"buckets": primitiveBucketId},
+		}
+		updateResult, err := renterCollection.UpdateOne(sessionContext, bson.M{"buckets": primitiveBucketId}, update)
+		if err != nil {
+			return nil, err
+		}
+		fmt.Printf("Updated %v Documents!\n", updateResult.ModifiedCount)
+
+		return nil, nil
+	}
+
+	_, err = session.WithTransaction(context.Background(), callback, transactionOptions)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"message": err.Error()})
+		return
+	}
+
+	c.IndentedJSON(http.StatusOK, gin.H{"message": "Bucket Deleted Successfully"})
+}
