@@ -1,8 +1,17 @@
 import React from 'react'
 import Button from './Button'
 import logo from '../assets/logo.png'
+import { useNavigate } from "react-router-dom";
 
 const Navbar = () => {
+
+    const navigate = useNavigate();
+    const navigateToLogin = () => {
+        navigate('/login')
+    }
+    const navigateToSignup = () => {
+        navigate('/register')
+    }
     return (
         <div className='container navbar-wrapper'>
             <div style={{ display: 'flex' }}>
@@ -11,8 +20,8 @@ const Navbar = () => {
                 <h1 style={{ color: "white" }}>FileStore</h1>
             </div>
             <div className="starter-buttons">
-                <Button text="Login" style={{ backgroundColor: "orange" }} />
-                <Button text="Try for free" style={{ backgroundColor: "#70A1EB" }} />
+                <Button onClick={navigateToLogin} text="Login" style={{ backgroundColor: "orange" }} ></Button>
+                <Button onClick={navigateToSignup} text="Try for free" style={{ backgroundColor: "#70A1EB" }} />
             </div>
         </div >
     )

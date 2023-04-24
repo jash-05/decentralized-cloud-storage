@@ -10,6 +10,8 @@ import { Container } from '@mui/system'
 import BasicModal from '../../components/BasicModal'
 import { ListGroup, ListGroupItem } from 'react-bootstrap'
 import BasicTable from '../../components/BasicTable'
+import AddCircleOutlineOutlinedIcon from '@mui/icons-material/AddCircleOutlineOutlined';
+
 
 const Buckets = () => {
 
@@ -17,7 +19,7 @@ const Buckets = () => {
     const [open, setOpen] = React.useState(false);
     const handleOpen = () => setOpen(true);
     const handleClose = () => setOpen(false);
-
+    const CustomIconStyle = { height: "100%", verticalAlign: "-30%", marginRight: "5%" }
 
     const [bucketName, setBucketName] = useState('')
     const [network, setNetwork] = useState('StorJ')
@@ -85,7 +87,7 @@ const Buckets = () => {
 
             <div className='buckets-header'>
                 <h1>Buckets</h1>
-                <Button type="Button" text="Create bucket" style={{ fontSize: "14px", backgroundColor: "#FF9F46" }} onClick={handleOpen}></Button>
+                <Button icon={<AddCircleOutlineOutlinedIcon sx={CustomIconStyle} />} type="Button" text="Create bucket" style={{ minWidth: "200px", fontSize: "20px", backgroundColor: "#FF9F46" }} onClick={handleOpen}></Button>
             </div>
             <div className='buckets-header'>
                 <InputField placeholder="Type bucket name" handleNameChange={handleSearchNameChange} />
