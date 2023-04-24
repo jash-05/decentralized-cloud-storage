@@ -4,6 +4,7 @@
 margin:0px;
 }
 
+
 .App-logo {
   height: 40vmin;
   pointer-events: none;
@@ -42,11 +43,39 @@ margin:0px;
 .landing-page-wrapper{
   display: flex;
   flex-direction: column;
-  justify-content: center;
+  /* justify-content: center; */
+  padding-top: 10%;
   align-items: center;
   width: 100%;
   height: 100vh;
   background-color: #282c34;
+}
+
+.landing-page-wrapper .banner-heading{
+  font-size: 5rem;
+  color: #ffffff;
+  animation: slide 1s;
+  animation-fill-mode: forwards;
+}
+
+.landing-page-wrapper h2{
+  opacity: 0%;
+  animation: slide 1s;
+  animation-delay: 0.25s;
+  animation-fill-mode: forwards;
+}
+
+@keyframes slide {
+  0%{
+    opacity: 0%;
+    transform: translateX(0);
+}
+100%{
+  opacity: 100%;
+    transform: translateX(80px)
+}
+
+  
 }
 .banner-heading{
   font-size:5rem
@@ -66,13 +95,14 @@ margin:0px;
   width: 98%;
   padding: 20px 1%;
   box-shadow: 0px 10px 4px rgb(230, 216, 216);
-  background-image: linear-gradient( rgb(149, 149, 148),rgb(1, 1, 1));
+  background-image: linear-gradient( rgb(53, 53, 51),rgb(1, 1, 1));
 
 }
 
 .button{
   height:40px;
-  min-width: 120px;
+  max-width: auto;
+  width: auto;
   padding: 5px;
   font-size: 20px;
   font-weight: bold;
@@ -81,6 +111,13 @@ margin:0px;
   border: none;
   background-color: #ffffff;
   box-shadow: 0px 4px 4px rgba(0, 0, 0, 0.25);
+}
+
+
+.button:hover{
+  background-color: #70A1EB;
+  color: #ffffff;
+  cursor:pointer;
 }
 
 .starter-buttons{
@@ -102,16 +139,20 @@ margin:0px;
 .nav-buttons-wrapper{
   display: flex;
   flex-direction: column;
-  width: 100%;
   height: 90vh;
   justify-content: space-around;
+  margin-left: auto;
+  margin-right: auto;
+  width: 80%;
 }
 
 .nav-buttons-wrapper button{
   margin-bottom: 10px;
+  width: 100%;
 }
 .nav-button{
   padding:10px;
+  width: 100%;
 }
 
 .stage-wrapper{
