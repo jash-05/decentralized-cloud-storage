@@ -12,7 +12,7 @@ func Routes(web3Routes *gin.RouterGroup) {
 		bucketRoutes.POST("create", bucket.CreateBucket)
 		bucketRoutes.GET("getFiles", bucket.GetFilesForBucket)
 		bucketRoutes.GET("getBucketsForRenter", bucket.GetBucketsForRenter)
-		// bucketRoutes.POST("empty", bucket.RemoveFilesFromBucket)
+		bucketRoutes.POST("empty", bucket.RemoveFilesFromBucket)
 		bucketRoutes.DELETE("delete", bucket.DeleteBucket)
 	}
 }
