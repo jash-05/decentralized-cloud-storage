@@ -132,6 +132,28 @@ func GetBucketsForRenter(c *gin.Context) {
 	c.IndentedJSON(http.StatusOK, gin.H{"buckets": buckets})
 }
 
+func RemoveFilesFromBucket(c *gin.Context) {
+
+	bucketCollection := config.GetCollection(config.DB, string(models.BUCKETS))
+	bucketId := c.Query("bucketId")
+	primitiveBucketId, err := primitive.ObjectIDFromHex(bucketId)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"message": err.Error()})
+		return
+	}
+
+	update := bson.M{
+		"$set": bson.M{"files": make([]models.File, 0)},
+	}
+	_, err = bucketCollection.UpdateByID(context.Background(), primitiveBucketId, update)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"message": err.Error()})
+		return
+	}
+
+	c.IndentedJSON(http.StatusOK, gin.H{"message": "Bucket Emptied Successfully"})
+}
+
 func DeleteBucket(c *gin.Context) {
 
 	bucketCollection := config.GetCollection(config.DB, string(models.BUCKETS))
