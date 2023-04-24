@@ -66,7 +66,7 @@ export default function BasicTable({ headers, rowData, page, options }) {
                                     </TableCell>
                                     <TableCell align="left">{(row?.SizeInGB).toFixed(5)}</TableCell>
                                     <TableCell align="left">{row?.Type}</TableCell>
-                                    <OptionsMenu options={options} fileName={row?.Name} />
+                                    <OptionsMenu options={options} fileName={row?.Name} fileId={row?.ID} />
                                 </TableRow>
                             ))
 

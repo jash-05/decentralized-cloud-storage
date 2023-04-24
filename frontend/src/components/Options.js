@@ -7,7 +7,7 @@ import MoreVertIcon from '@mui/icons-material/MoreVert';
 
 const ITEM_HEIGHT = 48;
 
-export default function OptionsMenu({ options, fileName }) {
+export default function OptionsMenu({ options, fileName, fileId }) {
     const [anchorEl, setAnchorEl] = React.useState(null);
     const open = Boolean(anchorEl);
     const handleClick = (event) => {

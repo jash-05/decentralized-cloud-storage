@@ -280,7 +280,7 @@ func DeleteFile(w http.ResponseWriter, r *http.Request) {
 	fmt.Println("File Delete Endpoint Hit")
 
 	(w).Header().Set("Access-Control-Allow-Origin", "*")
-
+	
 	access, err := utils.GetStorjAccess()
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
