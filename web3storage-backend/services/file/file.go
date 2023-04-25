@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"io"
 	"math"
+	"mime/multipart"
 	"net/http"
 	"os"
 	"time"
@@ -18,25 +19,10 @@ import (
 	"go.mongodb.org/mongo-driver/bson/primitive"
 )
 
-func UploadFiletoNetwork(c *gin.Context) {
+func UploadFile(c *gin.Context,filename string, file multipart.File, headerSize int, contentType string ){
 
 	var r *http.Request = c.Request
 	var w http.ResponseWriter = c.Writer
-
-	fmt.Println("Upload File to web3storage")
-	r.ParseMultipartForm(10 << 20)
-
-	file, header, err := r.FormFile("myFile")
-	if err != nil {
-		fmt.Println("Error retrieving file", err)
-		return
-	}
-
-	defer file.Close()
-
-	fmt.Println("Uploading File : ", header.Filename)
-
-	var filename string = header.Filename
 
 	access, err := w3s.NewClient(w3s.WithToken(constants.WEB3_TOKEN))
 	if err != nil {
@@ -75,15 +61,15 @@ func UploadFiletoNetwork(c *gin.Context) {
 
 	fmt.Println("Bucket name: ", bucket.BucketName)
 	fmt.Println("Renter ID: ", bucket.RenterId)
-	fileName := header.Filename
 
 
 	newFile := models.File{
 		ID:             primitive.NewObjectID(),
-		Name:           fileName,
-		SizeInGB:       float64(header.Size) * 9.31 * math.Pow(10, -10),
+		Name:           filename,
+		SizeInGB:       float64(headerSize) * 9.31 * math.Pow(10, -10),
 		UploadDateTime: time.Now(),
-		Type:           header.Header.Get("Content-Type"),
+		Type:           contentType,
+		Cid:			cid.String(),
 	}
 
 	bucketDocumentUpdateResult, err := bucketCollection.UpdateOne(
@@ -113,6 +99,45 @@ func UploadFiletoNetwork(c *gin.Context) {
 	}
 	w.WriteHeader(http.StatusOK)
 	w.Write([]byte("Uploaded successfully"))
+
+}
+
+func UploadFiletoNetwork(c *gin.Context) {
+
+	var r *http.Request = c.Request
+	var w http.ResponseWriter = c.Writer
+	fmt.Println("Upload File to web3storage")
+	r.ParseMultipartForm(10 << 20)
+
+	//Get files from request and check the count
+	files := r.MultipartForm.File["myFile"]
+	if(len(files) > 1){
+		for _, file := range files {
+			f, err := file.Open()
+			if err != nil {
+				w.WriteHeader(http.StatusBadRequest)
+				fmt.Println("Error retrieving file", err)
+				return
+			}
+			defer f.Close()
+			filename := file.Filename
+			UploadFile(c, filename, f, (int( file.Size)), file.Header.Get("Content-Type"))
+		}
+	} else {
+		file, header, err := r.FormFile("myFile")
+	 if err != nil {
+	 	fmt.Println("Error retrieving file", err)
+	 	return
+	 }
+
+	 defer file.Close()
+
+	 fmt.Println("Uploading File : ", header.Filename)
+
+	 var filename string = header.Filename	
+	 UploadFile(c, filename, file, (int(header.Size)), header.Header.Get("Content-Type"))
+	}
+	
 }
 
 func DeleteFile(c *gin.Context) {
@@ -170,4 +195,40 @@ func DeleteFile(c *gin.Context) {
 		w.Write([]byte("Deleted successfully"))
 
 }
+
+
+// func DownloadFile(c *gin.Context) {
+	
+// 	/*Steps:
+
+// 		you will get renter, bucket name > file name > fetch the cid of this file
+// 		1. get bucket name and file name
+// 		2. use them to filter out the mongo collection in buckets collection
+// 		3. use the cid value in under files to form a url
+// 		4. url = https:// + cid+ filename  
+
+// 	*/
+	
+// 	var r *http.Request = c.Request;
+// 	var w http.ResponseWriter = c.Writer
+// 	r.ParseForm()
+	
+// 	bucketCollection := config.GetCollection(config.DB, "buckets")
+// 	//renterCollection := config.GetCollection(config.DB, "renter")
+
+// 	fileName := r.Form.Get("fileName")
+// 	bucketName := r.Form.Get("bucketName")
+// 	bucket := models.Bucket{}
+
+// 	bucketObject := bucketCollection.FindOne(context.TODO(),bson.M{"bucketName":bucketName, "files.name":fileName})
+// 	err := bucketObject.Decode(&bucket)
+
+// 	if err != nil {
+// 		w.WriteHeader(http.StatusInternalServerError)
+// 		w.Write([]byte("Bucket fetching from MongoDB failed: " + err.Error()))
+// 		return
+// 	}
+// }
+
+
 
