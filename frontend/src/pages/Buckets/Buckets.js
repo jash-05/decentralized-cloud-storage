@@ -11,6 +11,7 @@ import BasicModal from '../../components/BasicModal'
 import { ListGroup, ListGroupItem } from 'react-bootstrap'
 import BasicTable from '../../components/BasicTable'
 import AddCircleOutlineOutlinedIcon from '@mui/icons-material/AddCircleOutlineOutlined';
+import axios from 'axios'
 
 
 const Buckets = () => {
@@ -21,6 +22,7 @@ const Buckets = () => {
     const handleClose = () => setOpen(false);
     const CustomIconStyle = { height: "100%", verticalAlign: "-30%", marginRight: "5%" }
 
+    const renterId = "6445cd92a8c6e4da7ac7a9e0"
     const [bucketName, setBucketName] = useState('')
     const [network, setNetwork] = useState('StorJ')
 
@@ -28,20 +30,32 @@ const Buckets = () => {
         console.log(e.target.value)
         setBucketName(e.target.value)
     }
-    const handleNetworkChange = (e) => {
-        console.log(e.target.value)
-        setNetwork(e.target.value)
+    const handleNetworkChange = (e, selected) => {
+        console.log(selected)
+        setNetwork(selected)
     }
-    const handleCreateNewBucket = () => {
-        console.log("Creating new bucket", bucketName, network)
-    }
+    const handleCreateNewBucket = async (event) => {
+        event.preventDefault()
+        console.log("Creating new bucket", bucketName, network, renterId)
 
+        try {
+            const res = await axios.post(`http://localhost:8080/storj/bucket/createBucket`, null, { params: { bucketName, renterId } })
+            console.log("Bucket created successfully", res.data)
+            setDataDependency(res.data)
+        }
+
+        catch (err) {
+            console.log("Error occured while creating bucket", err)
+        }
+
+        handleClose()
+    }
 
     const handleSearchNameChange = (e) => {
         console.log(e.target.value)
     }
 
-
+    const [dataDepenency, setDataDependency] = useState('')
     const [bucketsData, setBucketsData] = useState([
         {
             id: "5f9f1b0b-1b1a-4b1a-9c1a-1b1a4b1a9c1a",
@@ -71,15 +85,19 @@ const Buckets = () => {
 
     const fetchBucketsforRenter = async () => {
         const id = getCurrentUser()
-        const data = await getBucketsforRenter("64228d510c4f6ffa8401ea01")
-        // console.log("hete", data)
+        const data = await getBucketsforRenter(renterId)
+        // console.log("renter bucket data", data)
         setBucketsData(data)
 
     }
+    // const handleDeleteBucket = async (bucketId) => {
+
+
+    // }
 
     useEffect(() => {
         fetchBucketsforRenter()
-    }, [])
+    }, [dataDepenency])
 
     return (
         <div className="buckets-wrapper">
@@ -87,11 +105,11 @@ const Buckets = () => {
 
             <div className='buckets-header'>
                 <h1>Buckets</h1>
-                <Button icon={<AddCircleOutlineOutlinedIcon sx={CustomIconStyle} />} type="Button" text="Create bucket" style={{ minWidth: "200px", fontSize: "20px", backgroundColor: "#FF9F46" }} onClick={handleOpen}></Button>
+                <Button icon={<AddCircleOutlineOutlinedIcon sx={CustomIconStyle} />} type="Button" text="Create Bucket" style={{ minWidth: "200px", fontSize: "20px", backgroundColor: "#FF9F46" }} onClick={handleOpen}></Button>
             </div>
-            <div className='buckets-header'>
+            <div className="bucket-search-wrapper" >
                 <InputField placeholder="Type bucket name" handleNameChange={handleSearchNameChange} />
-                <div></div>
+
             </div>
             <br />
             <div className='buckets-list-wrapper'>

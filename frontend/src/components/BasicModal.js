@@ -6,7 +6,10 @@ import Fade from '@mui/material/Fade';
 import Button from '@mui/material/Button';
 import Typography from '@mui/material/Typography';
 import InputField from './InputField';
-import SelectOptions from './SelectOptions';
+import ToggleButton from '@mui/material/ToggleButton';
+import ToggleButtonGroup from '@mui/material/ToggleButtonGroup';
+// import SelectOptions from './SelectOptions';
+
 const style = {
     position: 'absolute',
     top: '50%',
@@ -22,9 +25,6 @@ const style = {
 };
 
 export default function BasicModal({ open, handleClose, network, handleCreateNewBucket, handleNetworkChange, handleNameChange }) {
-    // const [open, setOpen] = React.useState(false);
-    // const handleOpen = () => setOpen(true);
-    // const handleClose = () => setOpen(false);
 
     return (
         <div>
@@ -58,7 +58,19 @@ export default function BasicModal({ open, handleClose, network, handleCreateNew
                         <Typography id="transition-modal-description" sx={{ mt: 4 }}>
                             Choose your preferred network.
                         </Typography>
-                        <SelectOptions network={network} handleNetworkChange={handleNetworkChange} />
+                        <ToggleButtonGroup
+                            fullWidth={true}
+                            size='large'
+                            value={network}
+                            exclusive
+                            onChange={handleNetworkChange}
+                            aria-label="Network"
+                        >
+                            <ToggleButton value="storJ">StorJ</ToggleButton>
+                            <ToggleButton value="web3">Web3</ToggleButton>
+                        </ToggleButtonGroup>
+
+                        {/* <SelectOptions network={network} handleNetworkChange={handleNetworkChange} /> */}
                         <br />
                         <br />
                         <div style={{ display: 'flex', justifyContent: 'center' }}>

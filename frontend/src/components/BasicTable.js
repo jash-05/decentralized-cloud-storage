@@ -10,13 +10,16 @@ import moment from 'moment';
 // import { Link } from '@mui/material';
 import { NavLink } from 'react-router-dom';
 import OptionsMenu from './Options';
+import { IconButton, Tooltip } from '@mui/material';
+import FileDownloadIcon from '@mui/icons-material/FileDownload';
+import DeleteIcon from '@mui/icons-material/Delete';
 
 
-export default function BasicTable({ headers, rowData, page, options }) {
+export default function BasicTable({ headers, rowData, page, options, handleDeleteFile, handleDownloadFile, handleDeleteBucket }) {
 
 
     return (
-        <TableContainer component={Paper} style={{ overflowY: "scroll", height: "70vh" }} >
+        <TableContainer component={Paper} style={{ borderRadius: "10px", overflowY: "scroll", height: "70vh" }} >
             <Table sx={{ minWidth: 650 }} aria-label="simple table">
                 <TableHead>
                     <TableRow>
@@ -26,6 +29,7 @@ export default function BasicTable({ headers, rowData, page, options }) {
                             ))
 
                         }
+                        <TableCell></TableCell>
                     </TableRow>
                 </TableHead>
                 <TableBody>
@@ -51,6 +55,11 @@ export default function BasicTable({ headers, rowData, page, options }) {
                                         <TableCell sx={{ backgroundColor: "#70A1EB" }} align="right"><span>{(row.StorageBackend)?.toUpperCase()}</span></TableCell>}
                                     <TableCell align="right">{row?.Files ? row.Files.length : 0}</TableCell>
                                     <TableCell align="right">{moment.utc(row?.CreationTime).format('YYYY-MM-DD HH:mm:ss')}</TableCell>
+                                    <Tooltip title="Delete">
+                                        <IconButton>
+                                            <DeleteIcon tooltip='delete' />
+                                        </IconButton>
+                                    </Tooltip>
                                 </TableRow>
                             ))
 
@@ -66,7 +75,23 @@ export default function BasicTable({ headers, rowData, page, options }) {
                                     </TableCell>
                                     <TableCell align="left">{(row?.SizeInGB).toFixed(5)}</TableCell>
                                     <TableCell align="left">{row?.Type}</TableCell>
-                                    <OptionsMenu options={options} fileName={row?.Name} />
+                                    {/* <OptionsMenu options={options} fileName={row?.Name} fileId={row?.ID} /> */}
+                                    <TableCell sx={{ width: "100px" }} >
+                                        <Tooltip title="Download">
+
+                                            <IconButton>
+                                                <FileDownloadIcon color='primary' onClick={
+                                                    () => (handleDownloadFile)(row?.Name)} />
+                                            </IconButton>
+                                        </Tooltip>
+                                        <Tooltip title="Delete">
+                                            <IconButton>
+                                                <DeleteIcon tooltip='delete' color='error' onClick={
+                                                    () => (handleDeleteFile)(row?.ID)} />
+                                            </IconButton>
+                                        </Tooltip>
+                                    </TableCell>
+
                                 </TableRow>
                             ))
 

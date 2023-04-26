@@ -1,33 +1,59 @@
-.buckets-header, .files-header{
+.buckets-header,
+.files-header,
+.profile-header,
+.bucket-search-wrapper {
     display: flex;
     align-items: center;
-    justify-content: space-around;
-    width: 100%;
+    justify-content: space-between;
+    width: 60%;
+    margin-left: auto;
+    margin-right: auto;
+
+    /* background-color: aquamarine; */
 }
 
-.buckets-wrapper, .files-wrapper{
-    width: 100%;
-    height: 90%;
+.buckets-header,
+.files-header,
+.profile-header {
     margin-top: 10%;
 }
 
-.buckets-list-wrapper, .files-list-wrapper{
+.buckets-wrapper,
+.files-wrapper,
+.profile-wrapper {
+    width: 100%;
+    height: 100%;
+
+}
+
+.profile-wrapper {
+    display: flex;
+    flex-direction: column;
+    justify-content: top;
+}
+
+.buckets-list-wrapper,
+.files-list-wrapper {
     display: flex;
     align-items: center;
     justify-content: center;
-    width:60%;
-    margin-left:auto;
-    margin-right:auto;
-    /* background-color: aqua; */
+    width: 60%;
+    margin-left: auto;
+    margin-right: auto;
 }
 
-.table-wrapper{
-    background-color: aquamarine;
-    /* display: flex; */
-    /* width: 100%; */
+.profile-form-wrapper {
+    width: 60%;
+    margin-left: auto;
+    margin-right: auto;
+    text-align: left;
 }
+
+.table-wrapper {
+    background-color: aquamarine;
+}
+
 table {
-    /* cellspacing */
     border-collapse: collapse;
     border-spacing: 0;
     width: 100%;

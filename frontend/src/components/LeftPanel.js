@@ -15,7 +15,6 @@ const LeftPanel = ({ selectedTab, handleSelectedTab }) => {
     const CustomIconButton = {
         width: "100%",
         textAlign: "left",
-        // paddingLeft: "10%"
     }
     function getCurrentDimension() {
         return {
@@ -49,7 +48,7 @@ const LeftPanel = ({ selectedTab, handleSelectedTab }) => {
                         <Button style={CustomIconButton} icon={<HomeOutlinedIcon sx={CustomIconStyle} />} className='nav-button' text={screenSize.width <= 1200 ? '' : 'Home'} onClick={() => handleSelectedTab(0)} />
                     </Link>
                     <Link to="/dashboard">
-                        <Button style={CustomIconButton} icon={<InsertChartOutlinedTwoToneIcon sx={CustomIconStyle} />} className='nav-button' text={screenSize.width <= 1200 ? '' : 'Dashboard'} onClick={() => handleSelectedTab(1)} />
+                        <Button style={CustomIconButton} icon={<InsertChartOutlinedTwoToneIcon sx={CustomIconStyle} />} className='nav-button' text={screenSize.width <= 1215 ? '' : 'Dashboard'} onClick={() => handleSelectedTab(1)} />
                     </Link>
                     <Link to="/buckets">
                         <Button style={CustomIconButton} icon={<DeleteOutlineOutlinedIcon sx={CustomIconStyle} />} className='nav-button' text={screenSize.width <= 1200 ? '' : 'Buckets'} onClick={() => handleSelectedTab(2)} />
