@@ -90,6 +90,10 @@ const Buckets = () => {
         setBucketsData(data)
 
     }
+    // const handleDeleteBucket = async (bucketId) => {
+
+
+    // }
 
     useEffect(() => {
         fetchBucketsforRenter()
@@ -101,11 +105,11 @@ const Buckets = () => {
 
             <div className='buckets-header'>
                 <h1>Buckets</h1>
-                <Button icon={<AddCircleOutlineOutlinedIcon sx={CustomIconStyle} />} type="Button" text="Create bucket" style={{ minWidth: "200px", fontSize: "20px", backgroundColor: "#FF9F46" }} onClick={handleOpen}></Button>
+                <Button icon={<AddCircleOutlineOutlinedIcon sx={CustomIconStyle} />} type="Button" text="Create Bucket" style={{ minWidth: "200px", fontSize: "20px", backgroundColor: "#FF9F46" }} onClick={handleOpen}></Button>
             </div>
-            <div className='buckets-header'>
+            <div className="bucket-search-wrapper" >
                 <InputField placeholder="Type bucket name" handleNameChange={handleSearchNameChange} />
-                <div></div>
+
             </div>
             <br />
             <div className='buckets-list-wrapper'>

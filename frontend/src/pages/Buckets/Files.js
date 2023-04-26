@@ -84,6 +84,7 @@ const Files = () => {
         catch (error) {
             console.log(error);
         }
+        getFiles();
     }
 
     const options = [
@@ -98,6 +99,7 @@ const Files = () => {
             handler: handleDeleteFile
         }
     ]
+
     const getFiles = async () => {
         const res = await axios.get("http://localhost:8080/storj/bucket/getFilesForBucket", { params: { bucketId: bucketData?.ID } })
         console.log("Bucket Data:", res.data)
@@ -109,13 +111,9 @@ const Files = () => {
 
     return (
         <div className="files-wrapper">
-            {/* <BasicModal open={open} handleClose={handleClose} handleOpen={handleOpen} handleNameChange={handleBucketNameChange} handleCreateNewBucket={handleCreateNewBucket} handleNetworkChange={handleNetworkChange} network /> */}
             <AlertDialogSlide open={open} handleClose={handleClose} handleFileUpload={handleFileUpload} fileList={file} />
             <div className='files-header'>
                 <h1>Files</h1>
-                {/* <Button type="Button" text="Upload File(s)" style={{ fontSize: "14px", backgroundColor: "#FF9F46" }} onClick={handleOpen}></Button> */}
-                {/* </div>  */}
-                {/* <div className='files-header'> */}
                 <div>
                     <label for="fileUpload" style={{
                         backgroundColor:
@@ -136,7 +134,7 @@ const Files = () => {
             </div>
             <br />
             <div className='buckets-list-wrapper'>
-                <BasicTable page="file" headers={["Name", "Size (in GB)", "Type"]} rowData={data} options={options} />
+                <BasicTable page="file" headers={["Name", "Size (in GB)", "Type"]} rowData={data} handleDownloadFile={handleDownloadFile} handleDeleteFile={handleDeleteFile} options={options} />
             </div>
         </div >
     )

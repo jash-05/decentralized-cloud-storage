@@ -46,7 +46,7 @@ export default function OptionsMenu({ options, fileName, fileId }) {
             >
                 {options?.map((option) => (
                     <MenuItem key={option.id} selected={option === 'Pyxis'} onClick={
-                        () => (option.handler)(fileName)}>
+                        () => (option.handler)(fileId)}>
                         {option.name}
                     </MenuItem>
                 ))}

@@ -66,8 +66,8 @@ export default function BasicModal({ open, handleClose, network, handleCreateNew
                             onChange={handleNetworkChange}
                             aria-label="Network"
                         >
-                            <ToggleButton value="StorJ">StorJ</ToggleButton>
-                            <ToggleButton value="Web3">Web3</ToggleButton>
+                            <ToggleButton value="storJ">StorJ</ToggleButton>
+                            <ToggleButton value="web3">Web3</ToggleButton>
                         </ToggleButtonGroup>
 
                         {/* <SelectOptions network={network} handleNetworkChange={handleNetworkChange} /> */}
