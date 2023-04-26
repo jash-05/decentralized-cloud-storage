@@ -10,15 +10,15 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-// func getFiles(ctx context.Context, c w3s.Client, stringCid string) []string {
-// 	cid, _ := cid.Parse(stringCid)
+//  func getFiles(ctx context.Context, c w3s.Client, stringCid string) []string {
+//  	cid, _ := cid.Parse(stringCid)
 
-// 	res, err := c.Get(ctx, cid)
-// 	if err != nil {
-// 		panic(err)
-// 	}
+//  	res, err := c.Get(ctx, cid)
+//  	if err != nil {
+//  		panic(err)
+//  	}
 
-// 	f, fsys, err := res.Files()
+//  	f, fsys, err := res.Files()
 // 	if err != nil {
 // 		panic(err)
 // 	}
@@ -86,5 +86,3 @@ func main() {
 	// fmt.Printf("The locations of files are: %v\n", fileUrlsForCid)
 
 }
-
-
