@@ -1,5 +1,7 @@
 import axios from 'axios'
 import { GET_BACKEND_URL, HTTP_METHODS } from '../constants/constants'
+import toast from 'react-hot-toast';
+
 
 const printErrorMessage = (err, requestUrl, method) => {
     console.log(`Error occured: ${err}`)
@@ -60,4 +62,17 @@ export const makeAxiosRequest = async (method, backendName, routeGroup, routePat
             console.log(`Invalid API method: ${method}`)
             return {}
     }
+}
+
+// toast-utils
+export const simpleToast = (message, type, duration = 4000, style) => {
+    toast(message, {
+        type: type, //success, error, loading, blank
+        position: "top-center",
+        duration: duration,
+        hideProgressBar: false,
+        closeOnClick: true,
+        draggable: true,
+        style: { style }
+    })
 }

@@ -9,7 +9,7 @@ import Paper from '@mui/material/Paper';
 import moment from 'moment';
 // import { Link } from '@mui/material';
 import { NavLink } from 'react-router-dom';
-import OptionsMenu from './Options';
+// import OptionsMenu from './Options';
 import { IconButton, Tooltip } from '@mui/material';
 import FileDownloadIcon from '@mui/icons-material/FileDownload';
 import DeleteIcon from '@mui/icons-material/Delete';
@@ -50,14 +50,19 @@ export default function BasicTable({ headers, rowData, page, options, handleDele
                                             {row?.BucketNameAlias}
                                         </NavLink>
                                     </TableCell>
-                                    {row?.StorageBackend == "web3" ? <TableCell sx={{ backgroundColor: "orange" }} align="right"><span>{(row?.StorageBackend)?.toUpperCase()}</span>
+                                    {row?.StorageBackend == "web3" ? <TableCell sx={{ backgroundColor: "#FFD817", fontWeight: "600" }} align="center"><span>{(row?.StorageBackend)?.toUpperCase()}</span>
                                     </TableCell> :
-                                        <TableCell sx={{ backgroundColor: "#70A1EB" }} align="right"><span>{(row.StorageBackend)?.toUpperCase()}</span></TableCell>}
-                                    <TableCell align="right">{row?.Files ? row.Files.length : 0}</TableCell>
-                                    <TableCell align="right">{moment.utc(row?.CreationTime).format('YYYY-MM-DD HH:mm:ss')}</TableCell>
+                                        <TableCell sx={{ backgroundColor: "#70A1EB", fontWeight: "600" }} align="center"><span>{(row.StorageBackend)?.toUpperCase()}</span></TableCell>}
+                                    <TableCell align="center">{row?.Files ? row.Files.length : 0}</TableCell>
+                                    <TableCell align="center">{moment(row?.CreationTime).format('LLL')}</TableCell>
                                     <Tooltip title="Delete">
                                         <IconButton>
-                                            <DeleteIcon tooltip='delete' />
+                                            <DeleteIcon sx={{
+                                                ":hover": {
+                                                    color: "red"
+                                                },
+                                                color: "black"
+                                            }} tooltip='delete' />
                                         </IconButton>
                                     </Tooltip>
                                 </TableRow>
@@ -80,23 +85,30 @@ export default function BasicTable({ headers, rowData, page, options, handleDele
                                         <Tooltip title="Download">
 
                                             <IconButton>
-                                                <FileDownloadIcon color='primary' onClick={
+                                                <FileDownloadIcon sx={{
+                                                    ":hover": {
+                                                        color: "#2196f3"
+                                                    },
+                                                    color: "black"
+                                                }} onClick={
                                                     () => (handleDownloadFile)(row?.Name)} />
                                             </IconButton>
                                         </Tooltip>
                                         <Tooltip title="Delete">
                                             <IconButton>
-                                                <DeleteIcon tooltip='delete' color='error' onClick={
+                                                <DeleteIcon sx={{
+                                                    ":hover": {
+                                                        color: "red"
+                                                    },
+                                                    color: "black"
+                                                }} tooltip='delete' onClick={
                                                     () => (handleDeleteFile)(row?.ID)} />
                                             </IconButton>
                                         </Tooltip>
                                     </TableCell>
-
                                 </TableRow>
                             ))
-
                     }
-
                 </TableBody>
             </Table>
         </TableContainer >
