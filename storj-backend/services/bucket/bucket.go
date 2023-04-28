@@ -225,8 +225,130 @@ func GetFilesForBucket(w http.ResponseWriter, r *http.Request) {
 	w.Write(jsonResp)
 }
 
-// TODO: Empty bucket [mongo]
-// TODO: Empty bucket storj helper
+func emptyBucketStorjHelper(ctx context.Context, access *uplink.Access, bucketName string, objectKey string) error {
+
+	fmt.Println("Deleting file from bucket: ", objectKey)
+	project, err := uplink.OpenProject(ctx, access)
+	if err != nil {
+		return fmt.Errorf("could not open project: %v", err)
+	}
+	defer project.Close()
+
+	_, err = project.EnsureBucket(ctx, bucketName)
+	if err != nil {
+		return fmt.Errorf("could not ensure bucket: %v", err)
+	}
+
+	// time.Sleep(10 * time.Second)
+	/*
+		We sleep this method for 10 seconds to test if the method is invoked as a Goroutine correctly.
+		It in fact is, as the "Deleting file from bucket: " is printed in the console at the same time for all object keys.
+		This means that the outer for loop from EmptyBucket() method is not waiting for the response from this method.
+		It's invoking the helper with all elements in the loop and then it's waiting for the response from the helper.
+
+		We are currently not handling errors here, Goroutines need to be used in Channels to catch all responses/errors.
+		See this: https://stackoverflow.com/questions/20945069/catching-return-values-from-goroutines
+		Also this: https://www.atatus.com/blog/goroutines-error-handling/
+	*/
+
+	deletedObject, err := project.DeleteObject(ctx, bucketName, objectKey)
+
+	if deletedObject == nil {
+		return fmt.Errorf("object not found")
+	} else if err != nil {
+		return fmt.Errorf("could not delete object: %v", err)
+	} else {
+		fmt.Println("Deleted object: ", deletedObject)
+		return nil
+	}
+}
+
+func EmptyBucket(w http.ResponseWriter, r *http.Request) {
+	fmt.Println("Empty Bucket for Renter Endpoint Hit")
+
+	(w).Header().Set("Access-Control-Allow-Origin", "*")
+
+	r.ParseForm()
+	bucketIdString := r.Form.Get("bucketId")
+	bucketIdObjectId, err := primitive.ObjectIDFromHex(bucketIdString)
+	if err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+		w.Write([]byte("Error parsing to ObjectID: " + err.Error()))
+		return
+	}
+
+	bucketCollection := config.GetCollection(config.DB, "buckets")
+	bucket := models.Bucket{}
+	bucketFilter := bson.D{{Key: "_id", Value: bucketIdObjectId}}
+	bucketObject := bucketCollection.FindOne(context.TODO(), bucketFilter)
+	err = bucketObject.Decode(&bucket)
+	if err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+		w.Write([]byte("Bucket fetching from MongoDB failed: " + err.Error()))
+		return
+	}
+
+	bucketName := bucket.BucketName
+	filesInsideBucket := bucket.Files
+	bucketFilesUpdateFilter := bson.D{{Key: "_id", Value: bucketIdObjectId}}
+	bucketFilesUpdateQuery := bson.M{"$set": bson.M{"files": []models.File{}}}
+
+	wc := writeconcern.New(writeconcern.WMajority())
+	rc := readconcern.Snapshot()
+	transactionOptions := options.Transaction().SetWriteConcern(wc).SetReadConcern(rc)
+
+	session, err := config.DB.StartSession()
+	if err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+		w.Write([]byte("Error creating a transaction session: " + err.Error()))
+		return
+	}
+
+	defer session.EndSession(context.TODO())
+
+	// Transaction
+	callback := func(sessionContext mongo.SessionContext) (interface{}, error) {
+		// Set files to [] in bucket document
+		bucketDocumentUpdateResult, err := bucketCollection.UpdateOne(sessionContext, bucketFilesUpdateFilter, bucketFilesUpdateQuery)
+		if err != nil {
+			return nil, fmt.Errorf("error removing files from bucket document: %v", err)
+		}
+		fmt.Println("Deleted files inside bucket document, successful modified count: ", bucketDocumentUpdateResult)
+
+		// Access to storj
+		access, err := utils.GetStorjAccess()
+		if err != nil {
+			return nil, fmt.Errorf("access to uplink failed: %v", err)
+		}
+
+		// Delete files from Storj
+		for i := 0; i < len(filesInsideBucket); i++ {
+			// Invoke Goroutine for each file inside bucket to introduce concurrency in the deletion process.
+			go emptyBucketStorjHelper(sessionContext, access, bucketName, filesInsideBucket[i].Name)
+
+			// FIXME: Uncomment this and use it if the goroutine errors can not be handled.
+			// err = emptyBucketStorjHelper(sessionContext, access, bucketName, filesInsideBucket[i].Name)
+			// if err != nil {
+			// 	return nil, fmt.Errorf("error deleting file from storj: %v", err)
+			// }
+		}
+
+		// TODO: reduce totalNumberOfFiles and totalStorage
+
+		return nil, nil
+	}
+
+	_, err = session.WithTransaction(context.Background(), callback, transactionOptions)
+	if err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+		w.Write([]byte("Error in transaction: " + err.Error()))
+		return
+	} else {
+		w.WriteHeader(http.StatusOK)
+		w.Write([]byte("Bucket emptied successfully"))
+		return
+	}
+}
 
 // TODO: Delete bucket [mongo]
 // TODO: Delete bucket storj helper

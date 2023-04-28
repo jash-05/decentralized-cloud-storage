@@ -81,15 +81,16 @@ func UploadFile(w http.ResponseWriter, r *http.Request) {
 	defer file.Close()
 
 	fileName := header.Filename
+	fileSize := float64(header.Size) * 9.31 * math.Pow(10, -10)
 	fmt.Println("Uploading file: ", fileName)
 
 	bucketId, _ := primitive.ObjectIDFromHex(r.Form.Get("bucketId"))
 	bucket := models.Bucket{}
-	bucketFilter := bson.D{{Key: "_id", Value: bucketId}}
 
 	bucketCollection := config.GetCollection(config.DB, "buckets")
 	renterCollection := config.GetCollection(config.DB, "renters")
 
+	bucketFilter := bson.D{{Key: "_id", Value: bucketId}}
 	bucketObject := bucketCollection.FindOne(context.TODO(), bucketFilter)
 	err = bucketObject.Decode(&bucket)
 	if err != nil {
@@ -109,7 +110,7 @@ func UploadFile(w http.ResponseWriter, r *http.Request) {
 	newFileObj := models.File{
 		ID:             primitive.NewObjectID(),
 		Name:           fileName,
-		SizeInGB:       float64(header.Size) * 9.31 * math.Pow(10, -10),
+		SizeInGB:       fileSize,
 		UploadDateTime: time.Now(),
 		Type:           header.Header.Get("Content-Type"),
 	}
@@ -145,7 +146,7 @@ func UploadFile(w http.ResponseWriter, r *http.Request) {
 		renterDocumentUpdateResult, err := renterCollection.UpdateOne(
 			sessionContext,
 			bson.M{"_id": bucket.RenterId},
-			bson.M{"$inc": bson.M{"totalStorage": newFileObj.SizeInGB, "totalNumberOfFiles": 1}},
+			bson.M{"$inc": bson.M{"totalStorage": fileSize, "totalNumberOfFiles": 1}},
 		)
 
 		if err != nil {
@@ -224,6 +225,7 @@ func downloadFileStorjHelper(ctx context.Context,
 	return nil
 }
 
+// TODO: Handle default user path for downloads
 func DownloadFile(w http.ResponseWriter, r *http.Request) {
 	fmt.Println("File Download Endpoint Hit")
 
@@ -281,13 +283,6 @@ func DeleteFile(w http.ResponseWriter, r *http.Request) {
 
 	(w).Header().Set("Access-Control-Allow-Origin", "*")
 
-	access, err := utils.GetStorjAccess()
-	if err != nil {
-		w.WriteHeader(http.StatusInternalServerError)
-		w.Write([]byte("Access to Uplink failed: " + err.Error()))
-		return
-	}
-
 	r.ParseForm()
 
 	fileId, _ := primitive.ObjectIDFromHex(r.Form.Get("fileId"))
@@ -301,7 +296,7 @@ func DeleteFile(w http.ResponseWriter, r *http.Request) {
 
 	bucketFilter := bson.D{{Key: "_id", Value: bucketId}}
 	bucketObject := bucketCollection.FindOne(context.TODO(), bucketFilter)
-	err = bucketObject.Decode(&bucket)
+	err := bucketObject.Decode(&bucket)
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
 		w.Write([]byte("Bucket fetching from MongoDB failed: " + err.Error()))
@@ -357,6 +352,12 @@ func DeleteFile(w http.ResponseWriter, r *http.Request) {
 			return nil, fmt.Errorf("error deleting file metrics from renter collection: %v", err)
 		}
 		fmt.Println("File metrics deleted from renter collection successful, modified count: ", renterDocumentUpdateResult.ModifiedCount)
+
+		// Access to Storj
+		access, err := utils.GetStorjAccess()
+		if err != nil {
+			return nil, fmt.Errorf("access to uplink failed: %v", err)
+		}
 
 		// Delete file from Storj
 		err = deleteFileStorjHelper(context.Background(), access, bucket.BucketName, fileName)
