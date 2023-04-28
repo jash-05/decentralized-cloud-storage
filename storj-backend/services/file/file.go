@@ -32,12 +32,6 @@ func uploadFileStorjHelper(ctx context.Context,
 	}
 	defer project.Close()
 
-	// Ensure the desired bucket within the project is created.
-	_, err = project.EnsureBucket(ctx, bucketName)
-	if err != nil {
-		return fmt.Errorf("could not ensure bucket: %v", err)
-	}
-
 	// Instantiate upload object of storj with our data and specified bucket.
 	upload, err := project.UploadObject(ctx, bucketName, objectKey, nil)
 	if err != nil {
@@ -191,12 +185,6 @@ func downloadFileStorjHelper(ctx context.Context,
 	}
 	defer project.Close()
 
-	// Ensure the desired Bucket within the Project is created.
-	_, err = project.EnsureBucket(ctx, bucketName)
-	if err != nil {
-		return fmt.Errorf("could not ensure bucket: %v", err)
-	}
-
 	// Instantiate a download stream for given bucket and object.
 	download, err := project.DownloadObject(ctx, bucketName, objectKey, nil)
 	if err != nil {
@@ -260,11 +248,6 @@ func deleteFileStorjHelper(ctx context.Context,
 		return fmt.Errorf("could not open project: %v", err)
 	}
 	defer project.Close()
-
-	_, err = project.EnsureBucket(ctx, bucketName)
-	if err != nil {
-		return fmt.Errorf("could not ensure bucket: %v", err)
-	}
 
 	deletedObject, err := project.DeleteObject(ctx, bucketName, objectKey)
 
