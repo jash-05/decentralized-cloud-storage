@@ -234,11 +234,6 @@ func emptyBucketStorjHelper(ctx context.Context, access *uplink.Access, bucketNa
 	}
 	defer project.Close()
 
-	_, err = project.EnsureBucket(ctx, bucketName)
-	if err != nil {
-		return fmt.Errorf("could not ensure bucket: %v", err)
-	}
-
 	// time.Sleep(10 * time.Second)
 	/*
 		We sleep this method for 10 seconds to test if the method is invoked as a Goroutine correctly.
@@ -277,6 +272,7 @@ func EmptyBucket(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	renterCollection := config.GetCollection(config.DB, "renters")
 	bucketCollection := config.GetCollection(config.DB, "buckets")
 	bucket := models.Bucket{}
 	bucketFilter := bson.D{{Key: "_id", Value: bucketIdObjectId}}
@@ -289,6 +285,8 @@ func EmptyBucket(w http.ResponseWriter, r *http.Request) {
 	}
 
 	bucketName := bucket.BucketName
+	renterId := bucket.RenterId
+	totalFilesInBucket := len(bucket.Files)
 	filesInsideBucket := bucket.Files
 	bucketFilesUpdateFilter := bson.D{{Key: "_id", Value: bucketIdObjectId}}
 	bucketFilesUpdateQuery := bson.M{"$set": bson.M{"files": []models.File{}}}
@@ -322,7 +320,7 @@ func EmptyBucket(w http.ResponseWriter, r *http.Request) {
 		}
 
 		// Delete files from Storj
-		for i := 0; i < len(filesInsideBucket); i++ {
+		for i := 0; i < totalFilesInBucket; i++ {
 			// Invoke Goroutine for each file inside bucket to introduce concurrency in the deletion process.
 			go emptyBucketStorjHelper(sessionContext, access, bucketName, filesInsideBucket[i].Name)
 
@@ -333,7 +331,17 @@ func EmptyBucket(w http.ResponseWriter, r *http.Request) {
 			// }
 		}
 
-		// TODO: reduce totalNumberOfFiles and totalStorage
+		renterDocumentUpdateResult, err := renterCollection.UpdateOne(
+			sessionContext,
+			bson.M{"_id": renterId},
+			bson.M{"$inc": bson.M{"totalNumberOfFiles": -totalFilesInBucket}},
+		)
+		if err != nil {
+			return nil, fmt.Errorf("error reducing bucket and file count from renter document: %v", err)
+		}
+		fmt.Println("Reduced bucket and file count from renter document, successful modified count: ", renterDocumentUpdateResult)
+
+		// TODO: Reduce total storage from renter's total storage, need to maintain total storage in bucket document for this.
 
 		return nil, nil
 	}
@@ -350,5 +358,119 @@ func EmptyBucket(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-// TODO: Delete bucket [mongo]
-// TODO: Delete bucket storj helper
+func deleteBucketStorjHelper(ctx context.Context, access *uplink.Access, bucketName string) error {
+
+	project, err := uplink.OpenProject(ctx, access)
+	if err != nil {
+		return fmt.Errorf("could not open project: %v", err)
+	}
+	defer project.Close()
+
+	deletedObject, err := project.DeleteBucketWithObjects(ctx, bucketName)
+
+	if err != nil {
+		return fmt.Errorf("could not delete object: %v", err)
+	} else {
+		fmt.Println("Deleted object: ", deletedObject)
+		return nil
+	}
+}
+
+func DeleteBucket(w http.ResponseWriter, r *http.Request) {
+	fmt.Println("Delete Bucket for Renter Endpoint Hit")
+
+	(w).Header().Set("Access-Control-Allow-Origin", "*")
+
+	r.ParseForm()
+	bucketIdString := r.Form.Get("bucketId")
+	bucketIdObjectId, err := primitive.ObjectIDFromHex(bucketIdString)
+	if err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+		w.Write([]byte("Error parsing to ObjectID: " + err.Error()))
+		return
+	}
+
+	renterCollection := config.GetCollection(config.DB, "renters")
+	bucketCollection := config.GetCollection(config.DB, "buckets")
+	bucket := models.Bucket{}
+	bucketFilter := bson.D{{Key: "_id", Value: bucketIdObjectId}}
+	bucketObject := bucketCollection.FindOne(context.TODO(), bucketFilter)
+
+	err = bucketObject.Decode(&bucket)
+	if err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+		w.Write([]byte("Bucket fetching from MongoDB failed: " + err.Error()))
+		return
+	}
+
+	bucketName := bucket.BucketName
+	renterId := bucket.RenterId
+	totalFilesInBucket := len(bucket.Files)
+	bucketDeleteFilter := bson.D{{Key: "_id", Value: bucketIdObjectId}}
+
+	wc := writeconcern.New(writeconcern.WMajority())
+	rc := readconcern.Snapshot()
+	transactionOptions := options.Transaction().SetWriteConcern(wc).SetReadConcern(rc)
+
+	session, err := config.DB.StartSession()
+	if err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+		w.Write([]byte("Error creating a transaction session: " + err.Error()))
+		return
+	}
+
+	defer session.EndSession(context.TODO())
+
+	// Transaction
+	callback := func(sessionContext mongo.SessionContext) (interface{}, error) {
+		bucketDocumentDeleteResult, err := bucketCollection.DeleteOne(sessionContext, bucketDeleteFilter)
+		if err != nil {
+			return nil, fmt.Errorf("error deleting bucket document: %v", err)
+		}
+		fmt.Println("Deleted bucket document, successful modified count: ", bucketDocumentDeleteResult)
+
+		// Access to storj
+		access, err := utils.GetStorjAccess()
+		if err != nil {
+			return nil, fmt.Errorf("access to uplink failed: %v", err)
+		}
+
+		// Delete bucket from Storj
+		err = deleteBucketStorjHelper(sessionContext, access, bucketName)
+		if err != nil {
+			return nil, fmt.Errorf("error deleting file from storj: %v", err)
+		}
+
+		// Remove bucketId from renter's buckets array
+		renterDocumentUpdate1Result, err := renterCollection.UpdateByID(sessionContext, renterId, bson.M{"$pull": bson.M{"buckets": bson.M{"_id": bucketIdObjectId}}})
+		if err != nil {
+			return nil, fmt.Errorf("error removing bucket from renter document: %v", err)
+		}
+		fmt.Println("Removed bucket from renter document, successful modified count: ", renterDocumentUpdate1Result)
+
+		// Reduce total bucket and file count from renter document
+		renterDocumentUpdate2Result, err := renterCollection.UpdateOne(
+			sessionContext,
+			bson.M{"_id": renterId},
+			bson.M{"$inc": bson.M{"totalBuckets": -1, "totalNumberOfFiles": -totalFilesInBucket}},
+		)
+		if err != nil {
+			return nil, fmt.Errorf("error reducing bucket and file count from renter document: %v", err)
+		}
+		fmt.Println("Reduced bucket and file count from renter document, successful modified count: ", renterDocumentUpdate2Result)
+
+		// TODO: Reduce total storage from renter's total storage, need to maintain total storage in bucket document for this.
+		return nil, nil
+	}
+
+	_, err = session.WithTransaction(context.Background(), callback, transactionOptions)
+	if err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+		w.Write([]byte("Error in transaction: " + err.Error()))
+		return
+	} else {
+		w.WriteHeader(http.StatusOK)
+		w.Write([]byte("Bucket emptied & deleted successfully"))
+		return
+	}
+}
