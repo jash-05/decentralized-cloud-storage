@@ -24,8 +24,14 @@ const style = {
     p: 4,
 };
 
+
 export default function BasicModal({ open, handleClose, network, handleCreateNewBucket, handleNetworkChange, handleNameChange }) {
 
+    const [alignment, setAlignment] = React.useState('web');
+
+    const handleChange = (event, newAlignment) => {
+        setAlignment(newAlignment);
+    };
     return (
         <div>
             <Modal
@@ -42,7 +48,7 @@ export default function BasicModal({ open, handleClose, network, handleCreateNew
                 }}
             >
                 <Fade in={open}>
-                    <Box sx={style}>
+                    <Box align="center" sx={style}>
                         <Typography id="transition-modal-title" variant="h4" component="h2">
                             Create New Bucket
                         </Typography>
@@ -50,6 +56,8 @@ export default function BasicModal({ open, handleClose, network, handleCreateNew
                         <br />
                         <Typography id="transition-modal-description" sx={{ mt: 4 }}>
                             Type in a name for your new bucket.
+                            <br />
+                            Enter lowercase alphanumeric characters only, no spaces.
                         </Typography>
                         <br />
                         <InputField
@@ -58,19 +66,20 @@ export default function BasicModal({ open, handleClose, network, handleCreateNew
                         <Typography id="transition-modal-description" sx={{ mt: 4 }}>
                             Choose your preferred network.
                         </Typography>
+
                         <ToggleButtonGroup
                             fullWidth={true}
                             size='large'
                             value={network}
                             exclusive
                             onChange={handleNetworkChange}
-                            aria-label="Network"
+                            aria-label="Platform"
+                            color='primary'
                         >
-                            <ToggleButton value="storJ">StorJ</ToggleButton>
+                            <ToggleButton value="storj">StorJ</ToggleButton>
                             <ToggleButton value="web3">Web3</ToggleButton>
                         </ToggleButtonGroup>
 
-                        {/* <SelectOptions network={network} handleNetworkChange={handleNetworkChange} /> */}
                         <br />
                         <br />
                         <div style={{ display: 'flex', justifyContent: 'center' }}>

@@ -7,6 +7,7 @@ import DialogContentText from '@mui/material/DialogContentText';
 import DialogTitle from '@mui/material/DialogTitle';
 import Slide from '@mui/material/Slide';
 
+
 const Transition = React.forwardRef(function Transition(props, ref) {
     return <Slide direction="up" ref={ref} {...props} />;
 });
@@ -15,20 +16,18 @@ export default function AlertDialogSlide({ open, handleClose, handleFileUpload, 
 
     return (
         <div>
-            {/* <Button variant="outlined" onClick={handleClickOpen}>
-                Slide in alert dialog
-            </Button> */}
             <Dialog
                 open={open}
                 TransitionComponent={Transition}
                 keepMounted
                 onClose={handleClose}
                 aria-describedby="alert-dialog-slide-description"
+
             >
-                <DialogTitle>
-                    <h2>
+                <DialogTitle align="center">
+                    <h3>
                         Confirm File Upload
-                    </h2>
+                    </h3>
                 </DialogTitle>
                 <DialogContent>
                     <DialogContentText id="alert-dialog-slide-description">
@@ -43,15 +42,20 @@ export default function AlertDialogSlide({ open, handleClose, handleFileUpload, 
                                     </span>
                             }
                         </b>
+                        <br />
                         {
                             fileList && Object.keys(fileList).map((file, i) => (
-                                <div key={i}>
-                                    {fileList[file].name}
+
+                                <div style={{ color: "black" }} key={i}>
+                                    <h6>
+                                        {fileList[file].name}
+                                    </h6>
                                 </div>
                             ))
 
                         }
                     </DialogContentText>
+
                 </DialogContent>
                 <DialogActions>
                     {

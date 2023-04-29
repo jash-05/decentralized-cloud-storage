@@ -12,6 +12,7 @@ import { ListGroup, ListGroupItem } from 'react-bootstrap'
 import BasicTable from '../../components/BasicTable'
 import AddCircleOutlineOutlinedIcon from '@mui/icons-material/AddCircleOutlineOutlined';
 import axios from 'axios'
+import { simpleToast } from '../../services/utils'
 
 
 const Buckets = () => {
@@ -24,28 +25,30 @@ const Buckets = () => {
 
     const renterId = "6445cd92a8c6e4da7ac7a9e0"
     const [bucketName, setBucketName] = useState('')
-    const [network, setNetwork] = useState('StorJ')
+    const [network, setNetwork] = useState('storj')
 
     const handleBucketNameChange = (e) => {
         console.log(e.target.value)
         setBucketName(e.target.value)
     }
-    const handleNetworkChange = (e, selected) => {
+    const handleNetworkChange = (event, selected) => {
         console.log(selected)
         setNetwork(selected)
     }
     const handleCreateNewBucket = async (event) => {
         event.preventDefault()
         console.log("Creating new bucket", bucketName, network, renterId)
-
+        simpleToast("Creating new bucket", "loading", 1000)
         try {
             const res = await axios.post(`http://localhost:8080/storj/bucket/createBucket`, null, { params: { bucketName, renterId } })
             console.log("Bucket created successfully", res.data)
             setDataDependency(res.data)
+            simpleToast("Bucket created successfully", "success")
         }
 
         catch (err) {
             console.log("Error occured while creating bucket", err)
+            simpleToast("Error occured while creating bucket", "error")
         }
 
         handleClose()
@@ -90,9 +93,8 @@ const Buckets = () => {
         setBucketsData(data)
 
     }
+
     // const handleDeleteBucket = async (bucketId) => {
-
-
     // }
 
     useEffect(() => {
@@ -101,11 +103,11 @@ const Buckets = () => {
 
     return (
         <div className="buckets-wrapper">
-            <BasicModal open={open} handleClose={handleClose} handleOpen={handleOpen} handleNameChange={handleBucketNameChange} handleCreateNewBucket={handleCreateNewBucket} handleNetworkChange={handleNetworkChange} network />
+            <BasicModal open={open} handleClose={handleClose} handleOpen={handleOpen} handleNameChange={handleBucketNameChange} handleCreateNewBucket={handleCreateNewBucket} handleNetworkChange={handleNetworkChange} network={network} />
 
             <div className='buckets-header'>
                 <h1>Buckets</h1>
-                <Button icon={<AddCircleOutlineOutlinedIcon sx={CustomIconStyle} />} type="Button" text="Create Bucket" style={{ minWidth: "200px", fontSize: "20px", backgroundColor: "#FF9F46" }} onClick={handleOpen}></Button>
+                <Button icon={<AddCircleOutlineOutlinedIcon sx={CustomIconStyle} />} type="Button" text="Create Bucket" style={{ minWidth: "200px", fontSize: "20px", backgroundColor: "#FFD817" }} onClick={handleOpen}></Button>
             </div>
             <div className="bucket-search-wrapper" >
                 <InputField placeholder="Type bucket name" handleNameChange={handleSearchNameChange} />
@@ -113,47 +115,7 @@ const Buckets = () => {
             </div>
             <br />
             <div className='buckets-list-wrapper'>
-
                 <BasicTable page={"bucket"} headers={["Name", "Network", "Objects", "Created"]} rowData={bucketsData} />
-                {/* <DataTable data={bucketsData} /> */}
-                {/* <table borderalign='left' className="table-wrapper">
-
-                    <ListGroup>
-                        <ListGroupItem>
-                            <thead>
-                                <tr>
-                                    <th>Name</th>
-                                    <th>Network</th>
-                                    <th>Created</th>
-                                    <th>Objects</th>
-                                </tr>
-                            </thead>
-
-
-                        </ListGroupItem>
-                        {bucketsData.map((bucket) => {
-                            return (
-                                <tr>
-                                    <ListGroupItem href="#" active>
-                                        <td>{bucket.name} </td>
-                                        <td>{bucket.network} </td>
-                                        <td>{bucket.created} </td>
-                                        <td>{bucket.objects} </td>
-                                    </ListGroupItem>
-                                </tr>)
-                        })
-                        }
-
-                    </ListGroup>;
-                </table> */}
-
-                {/* <ListGroupItem href="#" active>
-                         Link1
-                     </ListGroupItem>
-                     <ListGroupItem href="#">Link 2</ListGroupItem>
-                     <ListGroupItem href="#" disabled>
-                         Link 3
-                     </ListGroupItem> */}
             </div>
         </div >
     )
