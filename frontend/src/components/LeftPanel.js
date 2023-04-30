@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react'
-import { Link } from 'react-router-dom'
+import { Link, Navigate } from 'react-router-dom'
 import Button from './Button'
 import logo from '../assets/logo.png'
 import HomeOutlinedIcon from '@mui/icons-material/HomeOutlined';
@@ -7,11 +7,14 @@ import InsertChartOutlinedTwoToneIcon from '@mui/icons-material/InsertChartOutli
 import DeleteOutlineOutlinedIcon from '@mui/icons-material/DeleteOutlineOutlined';
 import PersonOutlineOutlinedIcon from '@mui/icons-material/PersonOutlineOutlined';
 import LogoutOutlinedIcon from '@mui/icons-material/LogoutOutlined';
+import { useNavigate } from 'react-router-dom';
 
 const LeftPanel = ({ selectedTab, handleSelectedTab }) => {
+
+    const navigate = useNavigate();
     const [screenSize, setScreenSize] = useState(getCurrentDimension());
     const CustomIconStyle = { height: "100%", verticalAlign: "-20%", marginRight: "5%" }
-
+    const renterId = localStorage.getItem('renterId')
     const CustomIconButton = {
         width: "100%",
         textAlign: "left",
@@ -23,7 +26,14 @@ const LeftPanel = ({ selectedTab, handleSelectedTab }) => {
         }
     }
 
+    const handleLogout = async () => {
+        localStorage.removeItem('renterId')
+        navigate('/')
+    }
+
     useEffect(() => {
+
+
         const updateDimension = () => {
             setScreenSize(getCurrentDimension())
         }
@@ -50,7 +60,7 @@ const LeftPanel = ({ selectedTab, handleSelectedTab }) => {
                     <Link to="/dashboard">
                         <Button style={CustomIconButton} icon={<InsertChartOutlinedTwoToneIcon sx={CustomIconStyle} />} className='nav-button' text={screenSize.width <= 1215 ? '' : 'Dashboard'} onClick={() => handleSelectedTab(1)} />
                     </Link>
-                    <Link to="/buckets">
+                    <Link to={`/buckets/renter/${renterId}`}>
                         <Button style={CustomIconButton} icon={<DeleteOutlineOutlinedIcon sx={CustomIconStyle} />} className='nav-button' text={screenSize.width <= 1200 ? '' : 'Buckets'} onClick={() => handleSelectedTab(2)} />
                     </Link>
                     <Link to="/Profile">
@@ -58,10 +68,9 @@ const LeftPanel = ({ selectedTab, handleSelectedTab }) => {
                     </Link>
 
                 </div>
-                {/* </div> */}
                 <div>
 
-                    <Button style={CustomIconButton} icon={<LogoutOutlinedIcon sx={CustomIconStyle} />} className='nav-button' text={screenSize.width <= 1200 ? '' : 'Logout'} />
+                    <Button style={CustomIconButton} icon={<LogoutOutlinedIcon sx={CustomIconStyle} />} className='nav-button' onClick={handleLogout} text={screenSize.width <= 1200 ? '' : 'Logout'} />
                 </div>
             </div>
         </div>

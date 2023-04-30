@@ -18,12 +18,13 @@ import { simpleToast } from '../../services/utils'
 const Buckets = () => {
 
     //Modal states and functions for new bucket
+    // const [renterId, setRenterId] = useState('')
     const [open, setOpen] = React.useState(false);
     const handleOpen = () => setOpen(true);
     const handleClose = () => setOpen(false);
     const CustomIconStyle = { height: "100%", verticalAlign: "-30%", marginRight: "5%" }
 
-    const renterId = "6445cd92a8c6e4da7ac7a9e0"
+    const renterId = getCurrentUser()
     const [bucketName, setBucketName] = useState('')
     const [network, setNetwork] = useState('storj')
 
@@ -88,16 +89,15 @@ const Buckets = () => {
 
     const fetchBucketsforRenter = async () => {
         const id = getCurrentUser()
-        const data = await getBucketsforRenter(renterId)
-        // console.log("renter bucket data", data)
+        const data = await getBucketsforRenter(id)
         setBucketsData(data)
-
     }
 
     // const handleDeleteBucket = async (bucketId) => {
     // }
 
     useEffect(() => {
+
         fetchBucketsforRenter()
     }, [dataDepenency])
 

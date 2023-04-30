@@ -81,7 +81,7 @@ func Login(c *gin.Context) {
 	err := renterCollection.FindOne(c, bson.M{"email": loginRenter.Email}).Decode(&renterDocument)
 	if err != nil {
 		if err == mongo.ErrNoDocuments {
-			c.JSON(http.StatusNotFound, gin.H{"message": "No user exists with the given email"})
+			c.JSON(http.StatusBadRequest, gin.H{"message": "No user exists with the given email"})
 			return
 		}
 		c.JSON(http.StatusInternalServerError, gin.H{"message": err.Error()})
@@ -94,7 +94,7 @@ func Login(c *gin.Context) {
 		return
 	}
 
-	c.IndentedJSON(http.StatusFound, gin.H{"renterId": renterDocument.ID})
+	c.IndentedJSON(http.StatusOK, gin.H{"renterId": renterDocument.ID})
 }
 
 // function to update user profile

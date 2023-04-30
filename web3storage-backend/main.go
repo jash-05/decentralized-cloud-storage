@@ -57,7 +57,7 @@ func main() {
 	web3Routes := router.Group("web3")
 	fileroutes.Routes(web3Routes)
 	bucketroutes.Routes(web3Routes)
-	router.Run("localhost:8080")
+	router.Run("localhost:8082")
 
 	err := config.DB.Ping(context.TODO(), nil)
 	if err != nil {

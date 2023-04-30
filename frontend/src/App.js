@@ -10,6 +10,7 @@ import Navbar from './components/Navbar';
 import LeftPanel from './components/LeftPanel';
 import Files from './pages/Buckets/Files';
 import Login from './pages/Login/Login';
+import Register from './pages/Login/Register';
 
 function App() {
 
@@ -38,6 +39,11 @@ function App() {
           element={<Login />}
         >
         </Route>
+        <Route
+          path='/register'
+          element={<Register />}
+        >
+        </Route>
       </Routes>
 
       {!['/', '/login', '/register'].includes(location.pathname) &&
@@ -47,7 +53,7 @@ function App() {
             <Routes>
 
               <Route
-                path='/dashboard/'
+                path='/dashboard/:renterId'
                 element={<Dashboard />}
               >
               </Route>
@@ -72,7 +78,7 @@ function App() {
 
 
               <Route
-                path='/profile/'
+                path='/profile/:renterId'
                 element={<Profile />}
               >
               </Route>

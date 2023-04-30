@@ -38,7 +38,7 @@ export async function loginRenter(payload) {
 
 export function getCurrentUser() {
     try {
-        const user = localStorage.getItem('user')
+        const user = localStorage.getItem('renterId')
         return user
     } catch (e) {
         console.log(e)
