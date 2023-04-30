@@ -326,9 +326,9 @@ func EmptyBucket(w http.ResponseWriter, r *http.Request) {
 
 			// FIXME: Uncomment this and use it if the goroutine errors can not be handled.
 			// err = emptyBucketStorjHelper(sessionContext, access, bucketName, filesInsideBucket[i].Name)
-			// if err != nil {
-			// 	return nil, fmt.Errorf("error deleting file from storj: %v", err)
-			// }
+			if err != nil {
+				return nil, fmt.Errorf("error deleting file from storj: %v", err)
+			}
 		}
 
 		renterDocumentUpdateResult, err := renterCollection.UpdateOne(
