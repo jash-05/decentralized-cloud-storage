@@ -3,6 +3,7 @@ package file
 import (
 	"bytes"
 	"context"
+	"encoding/json"
 	"example/backend/db/config"
 	"example/backend/db/models"
 	"example/backend/utils"
@@ -56,27 +57,50 @@ func uploadFileStorjHelper(ctx context.Context,
 	return nil
 }
 
-// TODO: Add functionality to upload multiple files.
 func UploadFile(w http.ResponseWriter, r *http.Request) {
 	fmt.Println("File Upload Endpoint Hit")
 
 	(w).Header().Set("Access-Control-Allow-Origin", "*")
 
 	// Parse our multipart form.
-	// 10 << 20 specifies a maximum upload of 10 MB files.
-	r.ParseMultipartForm(10 << 20)
+	// 32 << 20 specifies a maximum upload of 32 MB files.
+	r.ParseMultipartForm(32 << 20)
 
-	file, header, err := r.FormFile("myFile")
-	if err != nil {
-		fmt.Println("Error retrieving the file: ", err)
-		return
+	fhs := r.MultipartForm.File["myFiles"]
+
+	fileMapBytes := make(map[string][]byte)
+	fileMapFileSize := make(map[string]float64)
+	fileMapContentType := make(map[string]string)
+	totalFilesSize := float64(0)
+	totalNumberOfFiles := len(fhs)
+
+	fmt.Println("Total number of files: ", totalNumberOfFiles)
+
+	for _, fileHeader := range fhs {
+		f, err := fileHeader.Open()
+		if err != nil {
+			w.WriteHeader(http.StatusInternalServerError)
+			w.Write([]byte("Error retrieving the file: " + err.Error()))
+		}
+
+		fmt.Println("Reading file: ", fileHeader.Filename)
+
+		fileBytes, err := io.ReadAll(f)
+		if err != nil {
+			w.WriteHeader(http.StatusInternalServerError)
+			w.Write([]byte("Error in reading file bytes for file: " + err.Error()))
+			return
+		}
+
+		fileSizeInGb := float64(fileHeader.Size) * 9.31 * math.Pow(10, -10)
+		totalFilesSize += fileSizeInGb
+
+		fileMapBytes[fileHeader.Filename] = fileBytes
+		fileMapFileSize[fileHeader.Filename] = fileSizeInGb
+		fileMapContentType[fileHeader.Filename] = fileHeader.Header.Get("Content-Type")
+
+		defer f.Close()
 	}
-
-	defer file.Close()
-
-	fileName := header.Filename
-	fileSize := float64(header.Size) * 9.31 * math.Pow(10, -10)
-	fmt.Println("Uploading file: ", fileName)
 
 	bucketId, _ := primitive.ObjectIDFromHex(r.Form.Get("bucketId"))
 	bucket := models.Bucket{}
@@ -86,28 +110,15 @@ func UploadFile(w http.ResponseWriter, r *http.Request) {
 
 	bucketFilter := bson.D{{Key: "_id", Value: bucketId}}
 	bucketObject := bucketCollection.FindOne(context.TODO(), bucketFilter)
-	err = bucketObject.Decode(&bucket)
+	err := bucketObject.Decode(&bucket)
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
 		w.Write([]byte("Bucket fetching from MongoDB failed: " + err.Error()))
+		return
 	}
 
 	fmt.Println("Bucket name: ", bucket.BucketName)
 	fmt.Println("Renter ID: ", bucket.RenterId)
-
-	// read all of the contents of our uploaded file into a byte array
-	fileBytes, err := io.ReadAll(file)
-	if err != nil {
-		fmt.Println(err)
-	}
-
-	newFileObj := models.File{
-		ID:             primitive.NewObjectID(),
-		Name:           fileName,
-		SizeInGB:       fileSize,
-		UploadDateTime: time.Now(),
-		Type:           header.Header.Get("Content-Type"),
-	}
 
 	wc := writeconcern.New(writeconcern.WMajority())
 	rc := readconcern.Snapshot()
@@ -124,28 +135,40 @@ func UploadFile(w http.ResponseWriter, r *http.Request) {
 
 	// Transaction
 	callback := func(sessionContext mongo.SessionContext) (interface{}, error) {
-		// Add file info to bucket collection
-		bucketDocumentUpdateResult, err := bucketCollection.UpdateOne(
-			sessionContext,
-			bson.M{"_id": bucketId},
-			bson.M{"$push": bson.M{"files": newFileObj}},
-		)
+		for fileName := range fileMapBytes {
+			fileContentType := fileMapContentType[fileName]
+			fileSize := fileMapFileSize[fileName]
+			newFileObj := models.File{
+				ID:             primitive.NewObjectID(),
+				Name:           fileName,
+				SizeInGB:       fileSize,
+				UploadDateTime: time.Now(),
+				Type:           fileContentType,
+			}
 
-		if err != nil {
-			return nil, fmt.Errorf("error adding file to bucket collection: %v", err)
+			// Add file info to bucket collection
+			bucketDocumentUpdateResult, err := bucketCollection.UpdateOne(
+				sessionContext,
+				bson.M{"_id": bucketId},
+				bson.M{"$push": bson.M{"files": newFileObj}},
+			)
+			if err != nil {
+				return nil, fmt.Errorf("error adding file to bucket collection: %v", err)
+			}
+
+			fmt.Println("File upload added to bucket document collection successfully, modified count: ", bucketDocumentUpdateResult.ModifiedCount)
 		}
-		fmt.Println("File upload added bucket collection successfully, modified count: ", bucketDocumentUpdateResult.ModifiedCount)
 
 		// Update file metrics to renter collection
 		renterDocumentUpdateResult, err := renterCollection.UpdateOne(
 			sessionContext,
 			bson.M{"_id": bucket.RenterId},
-			bson.M{"$inc": bson.M{"totalStorage": fileSize, "totalNumberOfFiles": 1}},
+			bson.M{"$inc": bson.M{"totalStorage": totalFilesSize, "totalNumberOfFiles": totalNumberOfFiles}},
 		)
-
 		if err != nil {
 			return nil, fmt.Errorf("error adding file metrics to renter collection: %v", err)
 		}
+
 		fmt.Println("File upload metrics added to renter collection successfully, modified count: ", renterDocumentUpdateResult.ModifiedCount)
 
 		// Setup storj access object
@@ -154,23 +177,35 @@ func UploadFile(w http.ResponseWriter, r *http.Request) {
 			return nil, fmt.Errorf("access to uplink failed: %v", err)
 		}
 
-		// Create new file on Storj
-		err = uploadFileStorjHelper(context.Background(), access, bucket.BucketName, fileName, fileBytes)
-		if err != nil {
-			return nil, fmt.Errorf("error uploading file on storj: %v", err)
+		for fileName := range fileMapBytes {
+			// Create new file on Storj
+			fileBytes := fileMapBytes[fileName]
+			go uploadFileStorjHelper(context.Background(), access, bucket.BucketName, fileName, fileBytes)
+			if err != nil {
+				return nil, fmt.Errorf("error uploading file on storj: %v", err)
+			}
 		}
 
-		return nil, nil
+		bucket := models.Bucket{}
+		bucketObject := bucketCollection.FindOne(context.TODO(), bucketFilter)
+		err = bucketObject.Decode(&bucket)
+		if err != nil {
+			return nil, fmt.Errorf("error fetching updated bucket from MongoDB: %v", err)
+		}
+
+		return bucket, nil
 	}
 
-	_, err = session.WithTransaction(context.Background(), callback, transactionOptions)
+	updatedBucket, err := session.WithTransaction(context.Background(), callback, transactionOptions)
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
 		w.Write([]byte("Error uploading file: " + err.Error()))
 		return
 	} else {
 		w.WriteHeader(http.StatusOK)
-		w.Write([]byte("File upload successful"))
+		w.Header().Set("Content-Type", "application/json")
+		jsonResp, _ := json.Marshal(updatedBucket)
+		w.Write(jsonResp)
 		return
 	}
 }
