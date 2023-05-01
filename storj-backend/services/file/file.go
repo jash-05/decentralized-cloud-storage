@@ -180,11 +180,14 @@ func UploadFile(w http.ResponseWriter, r *http.Request) {
 		for fileName := range fileMapBytes {
 			// Create new file on Storj
 			fileBytes := fileMapBytes[fileName]
-			go uploadFileStorjHelper(context.Background(), access, bucket.BucketName, fileName, fileBytes)
+			// go uploadFileStorjHelper(context.Background(), access, bucket.BucketName, fileName, fileBytes)
+			err= uploadFileStorjHelper(context.Background(), access, bucket.BucketName, fileName, fileBytes)
+
 			if err != nil {
 				return nil, fmt.Errorf("error uploading file on storj: %v", err)
 			}
 		}
+
 
 		bucket := models.Bucket{}
 		bucketObject := bucketCollection.FindOne(context.TODO(), bucketFilter)
