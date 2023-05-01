@@ -28,6 +28,7 @@ type Bucket struct {
 type Renter struct {
 	ID                 primitive.ObjectID   `bson:"_id,omitempty"`
 	Name               string               `bson:"name"`
+	Username           string               `bson:"username"`
 	Email              string               `bson:"email"`
 	Password           string               `bson:"password"`
 	Mobile             string               `bson:"mobile"`

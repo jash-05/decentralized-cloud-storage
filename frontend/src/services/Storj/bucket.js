@@ -1,10 +1,11 @@
 import axios from 'axios'
 import info from '../../config.json'
 
-const apiEndpoint = info.storjBackend + 'renter/'
+const apiEndpoint = info.storjBackend + '/storj/bucket/'
 
 export async function getBucketsforRenter(renterId) {
-    const { data } = await axios.get(apiEndpoint + `getBuckets/${renterId}`)
+    const { data } = await axios.get(apiEndpoint + `getBucketsForRenter`, { params: { renterId: renterId } })
+    console.log("here", data)
     return data
 }
 
