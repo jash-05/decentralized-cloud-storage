@@ -22,10 +22,8 @@ const Register = () => {
     const email = useRef();
     const password = useRef();
     const confirmPassword = useRef();
-    const phoneNumber = useRef();
-    const city = useRef();
-    const state = useRef();
-    const country = useRef();
+    const mobile = useRef();
+    const location = useRef();
     // const [firstName, setFirstName] = useState('')
     // const [lastName, setLastName] = useState('')
     // const [emailAddress, setEmailAddress] = useState('')
@@ -45,10 +43,8 @@ const Register = () => {
             email: data.get('email'),
             password: data.get('password'),
             confirmPassword: data.get('confirmPassword'),
-            phoneNumber: data.get('phoneNumber'),
-            city: data.get('city'),
-            state: data.get('state'),
-            country: data.get('country'),
+            mobile: data.get('mobile'),
+            location: data.get('location'),
         }
         console.log(payload)
 
@@ -162,56 +158,28 @@ const Register = () => {
                         <Grid container>
                             <Grid item xs={6}>
                                 <TextField
-                                    ref={phoneNumber}
+                                    ref={mobile}
                                     margin="normal"
                                     fullWidth
-                                    id="phoneNumber"
+                                    id="mobile"
                                     label="Phone Number"
-                                    name="phoneNumber"
-                                    autoComplete="phoneNumber"
+                                    name="mobile"
+                                    autoComplete="mobile"
                                     autoFocus
                                     type='number'
                                 />
                             </Grid>
                         </Grid>
                         <Grid container>
-                            <Grid item xs={4}>
+                            <Grid item xs={7}>
                                 <TextField
-                                    ref={city}
+                                    ref={location}
                                     margin="normal"
                                     fullWidth
-                                    id="city"
-                                    label="City"
-                                    name="city"
-                                    autoComplete="city"
-                                    autoFocus
-                                />
-                            </Grid>
-                            <Grid item xs={0.5}>
-                            </Grid>
-                            <Grid item xs={4}>
-                                <TextField
-                                    ref={state}
-                                    margin="normal"
-                                    fullWidth
-                                    id="state"
-                                    label="State"
-                                    name="state"
-                                    autoComplete="state"
-                                    autoFocus
-                                />
-                            </Grid>
-                            <Grid item xs={0.5}>
-                            </Grid>
-                            <Grid item xs={3}>
-                                <TextField
-                                    ref={country}
-                                    margin="normal"
-                                    fullWidth
-                                    id="country"
-                                    label="Country"
-                                    name="country"
-                                    autoComplete="country"
+                                    id="location"
+                                    label="Location"
+                                    name="location"
+                                    autoComplete="location"
                                     autoFocus
                                 />
                             </Grid>

@@ -53,8 +53,10 @@ func Register(c *gin.Context) {
 		FirstName: newRenter.FirstName,
 		LastName:  newRenter.LastName,
 		Username:  utils.GenerateRandomCharsetId(),
-		Email:     newRenter.Email,
+		Email:     newRenter.Email,	
 		Password:  passwordHash,
+		Mobile:    newRenter.Mobile,
+		Location:  newRenter.Location,
 		Buckets:   make([]primitive.ObjectID, 0),
 	}
 
@@ -129,7 +131,14 @@ func UpdateProfile(c *gin.Context) {
 		}
 	}
 
-	updatedRenter := bson.M{"firstName": newRenter.FirstName, "lastName": newRenter.LastName, "email": newRenter.Email}
+	updatedRenter := bson.M{
+		"firstName": newRenter.FirstName,
+		 "lastName": newRenter.LastName, 
+		 "email": newRenter.Email, 
+		//  "password": newRenter.Password,
+		"mobile": newRenter.Mobile,
+		"location": newRenter.Location,
+	}
 
 	result, err := renterCollection.UpdateOne(context.Background(), bson.M{"_id": primitiveRenterId}, bson.M{"$set": updatedRenter})
 	if err != nil {
