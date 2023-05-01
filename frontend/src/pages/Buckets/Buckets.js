@@ -12,7 +12,8 @@ import { ListGroup, ListGroupItem } from 'react-bootstrap'
 import BasicTable from '../../components/BasicTable'
 import AddCircleOutlineOutlinedIcon from '@mui/icons-material/AddCircleOutlineOutlined';
 import axios from 'axios'
-import { simpleToast } from '../../services/utils'
+import { makeAxiosRequest, simpleToast } from '../../services/utils'
+import { HTTP_METHODS } from '../../constants/constants'
 
 
 const Buckets = () => {
@@ -37,21 +38,29 @@ const Buckets = () => {
         console.log(selected)
         setNetwork(selected)
     }
+
     const handleCreateNewBucket = async (event) => {
         event.preventDefault()
         console.log("Creating new bucket", bucketName, network, renterId)
         simpleToast("Creating new bucket", "loading", 1000)
-        try {
-            const res = await axios.post(`http://localhost:8080/storj/bucket/createBucket`, null, { params: { bucketName, renterId } })
-            console.log("Bucket created successfully", res.data)
-            setDataDependency(res.data)
-            simpleToast("Bucket created successfully", "success")
-        }
+        // if (network === "web3") {
+        //     const payload = { bucketName, renterId }
+        //     const res = await makeAxiosRequest(HTTP_METHODS.POST, "web3", "bucket", "createBucket", payload)
+        //     console.log("Bucket created successfully", res)
+        //     setDataDependency(res)
+        //     simpleToast("Bucket created successfully", "success")
+        // }
+        // try {
+        //     const res = await axios.post(`http://localhost:8080/storj/bucket/createBucket`, null, { params: { bucketName, renterId } })
+        //     console.log("Bucket created successfully", res.data)
+        //     setDataDependency(res.data)
+        //     simpleToast("Bucket created successfully", "success")
+        // }
 
-        catch (err) {
-            console.log("Error occured while creating bucket", err)
-            simpleToast("Error occured while creating bucket", "error")
-        }
+        // catch (err) {
+        //     console.log("Error occured while creating bucket", err)
+        //     simpleToast("Error occured while creating bucket", "error")
+        // }
 
         handleClose()
     }

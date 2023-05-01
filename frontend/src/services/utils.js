@@ -15,6 +15,7 @@ const makeGetRequest = async (requestUrl, payload) => {
         return data
     } catch (err) {
         printErrorMessage(err, requestUrl, 'GET')
+        return err;
     }
 }
 
@@ -24,6 +25,7 @@ const makePostRequest = async (requestUrl, payload) => {
         return data
     } catch (err) {
         printErrorMessage(err, requestUrl, 'POST')
+        return err;
     }
 }
 
@@ -33,6 +35,7 @@ const makePutRequest = async (requestUrl, payload) => {
         return data
     } catch (err) {
         printErrorMessage(err, requestUrl, 'PUT')
+        return err;
     }
 }
 
@@ -42,6 +45,7 @@ const makeDeleteRequest = async (requestUrl, payload) => {
         return data
     } catch (err) {
         printErrorMessage(err, requestUrl, 'DELETE')
+        return err;
     }
 }
 
