@@ -7731,3 +7731,5 @@ mainbackend/tmp/
 web3storage-backend/constants/
 web3storage-backend/go.sum
 web3storage-backend/tmp/
+storj-backend/tmp/main
+storj-backend/tmp/build-errors.log
