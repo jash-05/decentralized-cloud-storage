@@ -3,10 +3,8 @@ import { GET_BACKEND_URL, HTTP_METHODS } from '../constants/constants'
 import toast from 'react-hot-toast';
 
 
-const printErrorMessage = (err, requestUrl, method) => {
+const printErrorMessage = (err) => {
     console.log(`Error occured: ${err}`)
-    console.log(`Request URL: ${requestUrl}`)
-    console.log(`Method: ${method}`)
 }
 
 const makeGetRequest = async (requestUrl, payload) => {
@@ -51,7 +49,11 @@ const makeDeleteRequest = async (requestUrl, payload) => {
 
 export const makeAxiosRequest = async (method, backendName, routeGroup, routePath, payload) => {
     const backendUrl = GET_BACKEND_URL(backendName)
-    const requestUrl = backendUrl + routeGroup + routePath + '/'
+    const requestUrl = backendUrl + routeGroup + '/' + routePath
+
+    console.log(`Request URL: ${requestUrl}`)
+    console.log(`Method: ${method}`)
+    console.log(`Payload: ${JSON.stringify(payload)}`)
 
     switch (method) {
         case HTTP_METHODS.GET:

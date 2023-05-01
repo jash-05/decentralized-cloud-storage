@@ -16,7 +16,8 @@ import logo from '../../assets/logo.png'
 import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
 import { simpleToast } from '../../services/utils';
-
+import { BACKEND_NAMES, HTTP_METHODS, ROUTE_GROUPS, ROUTE_PATHS } from '../../constants/constants';
+import { makeAxiosRequest } from '../../services/utils';
 
 const theme = createTheme();
 
@@ -42,6 +43,27 @@ export default function Login() {
       simpleToast("Failed to login!", "error")
       console.error(err)
     }
+    // });
+    // const payload = {
+    //     email: data.get("email"),
+    //     password: data.get("password")
+    // }
+    // const response = await makeAxiosRequest(
+    //     HTTP_METHODS.POST,
+    //     BACKEND_NAMES.MAIN,
+    //     ROUTE_GROUPS.RENTER,
+    //     ROUTE_PATHS.LOGIN,
+    //     payload
+    // )
+    // console.log(response)
+    // // try {
+    // //     const response = await axios.post('http://localhost:8082/renter/login', payload)
+    // // console.log(response)
+    // // } catch (err) {
+    // //     console.log(err)
+    // // }
+    
+    
   };
 
   return (
