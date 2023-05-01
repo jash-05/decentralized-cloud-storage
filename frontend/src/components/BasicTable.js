@@ -16,7 +16,7 @@ import DeleteIcon from '@mui/icons-material/Delete';
 import ClearIcon from '@mui/icons-material/Clear';
 
 
-export default function BasicTable({ headers, rowData, page, options, handleDeleteFile, handleDownloadFile }) {
+export default function BasicTable({ headers, rowData, page, options, handleDeleteFile, handleDownloadFile, storageBackend }) {
 
     return (
         <TableContainer component={Paper} style={{ borderRadius: "10px", overflowY: "scroll", height: "70vh" }} >
@@ -105,7 +105,7 @@ export default function BasicTable({ headers, rowData, page, options, handleDele
                                                     },
                                                     color: "black"
                                                 }} onClick={
-                                                    () => (handleDownloadFile)(row?.Name)} />
+                                                    () => (handleDownloadFile)(storageBackend, row?.Cid, row?.Name)} />
                                             </IconButton>
                                         </Tooltip>
                                         <Tooltip title="Delete">
@@ -116,7 +116,7 @@ export default function BasicTable({ headers, rowData, page, options, handleDele
                                                     },
                                                     color: "black"
                                                 }} tooltip='delete' onClick={
-                                                    () => (handleDeleteFile)(row?.ID)} />
+                                                    () => (handleDeleteFile)(storageBackend, row?.ID)} />
                                             </IconButton>
                                         </Tooltip>
                                     </TableCell>

@@ -56,3 +56,5 @@ export const ROUTE_PATHS = {
     VIEW_FILE_METADATA: 'viewFileMetadata',
     GET_HIGH_LEVEL_METRICS: 'getHighLevelMetrics'
 }
+
+export const BASE_IPFS_FILE_URL = "https://ipfs.io/ipfs"

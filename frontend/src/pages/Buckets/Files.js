@@ -4,9 +4,10 @@ import axios from 'axios';
 import Button from '../../components/Button';
 import { useLocation } from 'react-router-dom';
 import AlertDialogSlide from '../../components/SlideAlertDialog';
-import { simpleToast } from '../../services/utils';
+import { makeAxiosRequest, simpleToast } from '../../services/utils';
 import { Backdrop } from '@mui/material';
 import CircularProgress from '@mui/material/CircularProgress';
+import { BACKEND_NAMES, BASE_IPFS_FILE_URL, HTTP_METHODS, ROUTE_GROUPS, ROUTE_PATHS } from '../../constants/constants';
 
 const Files = () => {
 
@@ -74,54 +75,84 @@ const Files = () => {
 
     };
 
-    const handleDownloadFile = async (fileName, bucketName = bucketData?.BucketName) => {
+    const handleDownloadFileWeb3 = async (cid, fileName, bucketName) => {
+        console.log("file cid: ", cid)
         console.log("file to download", fileName)
-        console.log("bucketName", bucketData?.bucketName)
-        simpleToast("Downloading File", "loading", 2000)
-        try {
+        console.log("bucketName", bucketName)
+        const fileUrl = `${BASE_IPFS_FILE_URL}/${cid}/${fileName}`
 
-            // const res = await axios.get("http://localhost:8080/storj/file/downloadFile", { params: { fileName: fileName, bucketName: bucketName } })
-            // res.data().then(blob => {
-            axios({
-                url: `http://localhost:8080/storj/file/downloadFile`,
-                method: "GET",
-                // headers: headers,
-                params: { fileName: fileName, bucketName: bucketName },
-                responseType: "blob" // important
-            }).
-                then(blob => {
-                    let url = window.URL.createObjectURL(blob);
-                    let a = document.createElement('a');
-                    a.href = url;
-                    a.download = fileName;
-                    a.click();
-                })
-            // });
+        fetch(fileUrl)
+			.then(response => {
+				response.blob().then(blob => {
+					let url = window.URL.createObjectURL(blob);
+					let a = document.createElement('a');
+					a.href = url;
+					a.download = fileName;
+					a.click();
+				});
+				// window.location.href = response.url;
+		});
+    }
 
-            simpleToast("File Downloaded Successfully", "success")
-        }
-        catch (error) {
-            console.log(error);
-            simpleToast("File Download Failed", "error")
+    const handleDownloadFile = async (storageBackend, cid, fileName, bucketName = bucketData?.BucketName) => {
+        if (storageBackend === "web3") {
+            handleDownloadFileWeb3(cid, fileName, bucketName)
+        } else {
+            console.log("file to download", fileName)
+            console.log("bucketName", bucketData?.bucketName)
+            simpleToast("Downloading File", "loading", 2000)
+            try {
+    
+                // const res = await axios.get("http://localhost:8080/storj/file/downloadFile", { params: { fileName: fileName, bucketName: bucketName } })
+                // res.data().then(blob => {
+                axios({
+                    url: `http://localhost:8080/storj/file/downloadFile`,
+                    method: "GET",
+                    // headers: headers,
+                    params: { fileName: fileName, bucketName: bucketName },
+                    responseType: "blob" // important
+                }).
+                    then(blob => {
+                        let url = window.URL.createObjectURL(blob);
+                        let a = document.createElement('a');
+                        a.href = url;
+                        a.download = fileName;
+                        a.click();
+                    })
+                // });
+    
+                simpleToast("File Downloaded Successfully", "success")
+            }
+            catch (error) {
+                console.log(error);
+                simpleToast("File Download Failed", "error")
+            }
         }
     }
 
-    const handleDeleteFile = async (fileId, bucketId = bucketData?.ID) => {
-        console.log("file to delete", fileId)
-        console.log("bucketId", bucketData?.ID)
-        simpleToast("Deleting File", "loading", 1000)
-        try {
-
-            const res = await axios.delete("http://localhost:8080/storj/file/deleteFile", { params: { fileId: fileId, bucketId: bucketId } })
-            console.log("Deleted File:", res.data)
-            simpleToast("File Deleted Successfully", "success")
+    const handleDeleteFile = async (storageBackend, fileId, bucketId = bucketData?.ID) => {
+        if (storageBackend === "web3") {
+            const params = {fileId, bucketId}
+            const res = await makeAxiosRequest(HTTP_METHODS.DELETE, BACKEND_NAMES.WEB3, ROUTE_GROUPS.FILE, ROUTE_PATHS.DELETE_FILE, null, params)
+            console.log(res)
+            getFiles()
+        } else {
+            console.log("file to delete", fileId)
+            console.log("bucketId", bucketData?.ID)
+            simpleToast("Deleting File", "loading", 1000)
+            try {
+    
+                const res = await axios.delete("http://localhost:8080/storj/file/deleteFile", { params: { fileId: fileId, bucketId: bucketId } })
+                console.log("Deleted File:", res.data)
+                simpleToast("File Deleted Successfully", "success")
+                getFiles();
+            }
+            catch (error) {
+                console.log(error);
+                simpleToast("File Deletion Failed", "error")
+            }
             getFiles();
         }
-        catch (error) {
-            console.log(error);
-            simpleToast("File Deletion Failed", "error")
-        }
-        getFiles();
     }
 
     // const options = [
@@ -138,10 +169,13 @@ const Files = () => {
     // ]
 
     const getFiles = async () => {
-
-        const res = await axios.get("http://localhost:8080/storj/bucket/getFilesForBucket", { params: { bucketId: bucketData?.ID } })
         console.log("Bucket Data:", bucketData)
-        setData(res.data)
+        const res = await makeAxiosRequest(HTTP_METHODS.GET, (bucketData.StorageBackend === "web3" ? BACKEND_NAMES.WEB3 : BACKEND_NAMES.STORJ), ROUTE_GROUPS.BUCKET, ROUTE_PATHS.GET_FILES, null, { bucketId: bucketData?.ID })
+        console.log(res)
+        setData(res.files)
+        // const res = await axios.get("http://localhost:8080/storj/bucket/getFilesForBucket", { params: { bucketId: bucketData?.ID } })
+        // console.log("Bucket Data:", bucketData)
+        // setData(res.data)
     }
     useEffect(() => {
         getFiles();
@@ -172,7 +206,7 @@ const Files = () => {
             </div>
             <br />
             <div className='buckets-list-wrapper'>
-                <BasicTable page="file" headers={["Name", "Size (in GB)", "Type"]} rowData={data} handleDownloadFile={handleDownloadFile} handleDeleteFile={handleDeleteFile}
+                <BasicTable page="file" headers={["Name", "Size (in GB)", "Type"]} rowData={data} handleDownloadFile={handleDownloadFile} handleDeleteFile={handleDeleteFile} storageBackend={bucketData?.StorageBackend}
                 />
             </div>
             <Backdrop
