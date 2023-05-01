@@ -103,6 +103,24 @@ const Files = () => {
             simpleToast("Downloading File", "loading", 2000)
             try {
     
+                // // const res = await axios.get("http://localhost:8080/storj/file/downloadFile", { params: { fileName: fileName, bucketName: bucketName } })
+                // // res.data().then(blob => {
+                //     axios({
+                //         url: `http://localhost:8080/storj/file/downloadFile`,
+                //         method: "GET",
+                //         // headers: headers,
+                //         params: { fileName: fileName, bucketName: bucketName },
+                //         responseType: "blob" // important
+                //     }).
+                //         then(blob => {
+                //             let url = window.URL.createObjectURL(blob);
+                //             let a = document.createElement('a');
+                //             a.href = url;
+                //             a.download = fileName;
+                //             a.click();
+                //         })
+                //     // });
+
                 const res = await axios.get("http://localhost:8080/storj/file/downloadFile", { params: { fileName: fileName, bucketName: bucketName } })
                 console.log(res)
                 simpleToast("File Downloaded Successfully", "success")
