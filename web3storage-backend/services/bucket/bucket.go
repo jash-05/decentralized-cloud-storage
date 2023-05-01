@@ -105,7 +105,7 @@ func GetFilesForBucket(c *gin.Context) {
 		return
 	}
 
-	c.IndentedJSON(http.StatusOK, gin.H{"files": bucket.Files})
+	c.IndentedJSON(http.StatusOK, bucket.Files)
 }
 
 func GetBucketsForRenter(c *gin.Context) {

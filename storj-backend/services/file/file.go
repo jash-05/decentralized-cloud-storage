@@ -9,6 +9,7 @@ import (
 	"example/backend/utils"
 	"fmt"
 	"io"
+	"io/ioutil"
 	"math"
 	"net/http"
 	"os"
@@ -181,13 +182,12 @@ func UploadFile(w http.ResponseWriter, r *http.Request) {
 			// Create new file on Storj
 			fileBytes := fileMapBytes[fileName]
 			// go uploadFileStorjHelper(context.Background(), access, bucket.BucketName, fileName, fileBytes)
-			err= uploadFileStorjHelper(context.Background(), access, bucket.BucketName, fileName, fileBytes)
+			err = uploadFileStorjHelper(context.Background(), access, bucket.BucketName, fileName, fileBytes)
 
 			if err != nil {
 				return nil, fmt.Errorf("error uploading file on storj: %v", err)
 			}
 		}
-
 
 		bucket := models.Bucket{}
 		bucketObject := bucketCollection.FindOne(context.TODO(), bucketFilter)
@@ -273,8 +273,17 @@ func DownloadFile(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusInternalServerError)
 		w.Write([]byte("Storj download failed" + err.Error()))
 	} else {
+		fileBytes, err := ioutil.ReadFile(fileName)
+		if err != nil {
+			w.WriteHeader(http.StatusInternalServerError)
+			w.Write([]byte("Storj download failed" + err.Error()))
+			return
+		}
 		w.WriteHeader(http.StatusOK)
-		w.Write([]byte("Downloaded successfully"))
+		w.Header().Set("Content-Type", "application/octet-stream")
+		w.Write(fileBytes)
+		defer os.Remove(fileName)
+		return
 	}
 }
 
