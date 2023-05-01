@@ -116,7 +116,7 @@ func UploadFiletoNetwork(c *gin.Context) {
 	r.ParseMultipartForm(10 << 20)
 
 	//Get files from request and check the count
-	files := r.MultipartForm.File["myFile"]
+	files := r.MultipartForm.File["myFiles"]
 	if len(files) > 1 {
 		for _, file := range files {
 			f, err := file.Open()
@@ -130,7 +130,7 @@ func UploadFiletoNetwork(c *gin.Context) {
 			UploadFile(c, filename, f, (int(file.Size)), file.Header.Get("Content-Type"))
 		}
 	} else {
-		file, header, err := r.FormFile("myFile")
+		file, header, err := r.FormFile("myFiles")
 		if err != nil {
 			fmt.Println("Error retrieving file", err)
 			return

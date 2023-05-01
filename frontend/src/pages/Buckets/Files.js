@@ -7,7 +7,7 @@ import AlertDialogSlide from '../../components/SlideAlertDialog';
 import { makeAxiosRequest, simpleToast } from '../../services/utils';
 import { Backdrop } from '@mui/material';
 import CircularProgress from '@mui/material/CircularProgress';
-import { BACKEND_NAMES, BASE_IPFS_FILE_URL, HTTP_METHODS, ROUTE_GROUPS, ROUTE_PATHS } from '../../constants/constants';
+import { BACKEND_NAMES, BASE_IPFS_FILE_URL, GET_BACKEND_URL, HTTP_METHODS, ROUTE_GROUPS, ROUTE_PATHS } from '../../constants/constants';
 
 const Files = () => {
 
@@ -55,16 +55,26 @@ const Files = () => {
         setBackdropOpen(true)
 
         try {
-            // const response = await axios.post("http://localhost:8080/storj/file/uploadFile", formData, { options })
-            const response = await axios({
-                method: "post",
-                url: "http://localhost:8080/storj/file/uploadFile",
-                data: formData,
-                headers: { "Content-Type": "multipart/form-data" },
-            });
-            console.log("File Uploaded:", response.data);
-            if (response.data) {
+            if (bucketData.StorageBackend === "web3") {
+                const response = await axios({
+                    method: HTTP_METHODS.POST,
+                    url: `${GET_BACKEND_URL(BACKEND_NAMES.WEB3)}${ROUTE_GROUPS.FILE}/${ROUTE_PATHS.UPLOAD_FILE}`,
+                    data: formData,
+                    headers: { "Content-Type": "multipart/form-data" },
+                });
+                console.log("File Uploaded:", response.data);
                 setBackdropOpen(false)
+            } else {
+                const response = await axios({
+                    method: "post",
+                    url: "http://localhost:8080/storj/file/uploadFile",
+                    data: formData,
+                    headers: { "Content-Type": "multipart/form-data" },
+                });
+                console.log("File Uploaded:", response.data);
+                if (response.data) {
+                    setBackdropOpen(false)
+                }   
             }
             simpleToast("File Uploaded Successfully", "success")
             getFiles();
@@ -72,7 +82,6 @@ const Files = () => {
             console.log(error)
             simpleToast("File Upload Failed", "error")
         }
-
     };
 
     const handleDownloadFileWeb3 = async (cid, fileName, bucketName) => {
@@ -99,13 +108,30 @@ const Files = () => {
             handleDownloadFileWeb3(cid, fileName, bucketName)
         } else {
             console.log("file to download", fileName)
-            console.log("bucketName", bucketData?.bucketName)
+            console.log("bucketName", bucketName)
             simpleToast("Downloading File", "loading", 2000)
             try {
     
-                const res = await axios.get("http://localhost:8080/storj/file/downloadFile", { params: { fileName: fileName, bucketName: bucketName } })
-                console.log(res)
-                simpleToast("File Downloaded Successfully", "success")
+                fetch("http://localhost:8080/storj/file/downloadFile?" + new URLSearchParams({
+                    fileName: fileName,
+                    bucketName: bucketName
+                }), 
+                {
+                    method: "GET",
+                })
+                .then(response => {
+                    console.log(response)
+                    response.blob().then(blob => {
+                        let url = window.URL.createObjectURL(blob);
+                        let a = document.createElement('a');
+                        a.href = url;
+                        a.download = fileName;
+                        a.click();
+                    });
+                    // window.location.href = response.url;
+            });
+                // const res = await axios.get("http://localhost:8080/storj/file/downloadFile", { params: { fileName: fileName, bucketName: bucketName } })
+                // simpleToast("File Downloaded Successfully", "success")
             }
             catch (error) {
                 console.log(error);
@@ -133,7 +159,7 @@ const Files = () => {
             }
             catch (error) {
                 console.log(error);
-                simpleToast("File Deletion Failed", "error")
+                // simpleToast("File Deletion Failed", "error")
             }
             getFiles();
         }
@@ -156,7 +182,7 @@ const Files = () => {
         console.log("Bucket Data:", bucketData)
         const res = await makeAxiosRequest(HTTP_METHODS.GET, (bucketData.StorageBackend === "web3" ? BACKEND_NAMES.WEB3 : BACKEND_NAMES.STORJ), ROUTE_GROUPS.BUCKET, ROUTE_PATHS.GET_FILES, null, { bucketId: bucketData?.ID })
         console.log(res)
-        setData(res.files)
+        setData(res)
         // const res = await axios.get("http://localhost:8080/storj/bucket/getFilesForBucket", { params: { bucketId: bucketData?.ID } })
         // console.log("Bucket Data:", bucketData)
         // setData(res.data)

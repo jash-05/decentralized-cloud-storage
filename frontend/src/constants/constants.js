@@ -45,7 +45,7 @@ export const ROUTE_PATHS = {
     LOGIN: 'login',
     UPDATE_PROFILE: 'updateProfile',
     GET_PROFILE: 'getProfile',
-    UPLOAD_FILE: 'uploadFile',
+    UPLOAD_FILE: 'upload',
     DOWNLOAD_FILE: 'downloadFile',
     DELETE_FILE: 'delete',
     GET_FILES: 'getFiles',
