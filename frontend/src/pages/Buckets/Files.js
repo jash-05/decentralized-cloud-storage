@@ -7,7 +7,7 @@ import AlertDialogSlide from '../../components/SlideAlertDialog';
 import { makeAxiosRequest, simpleToast } from '../../services/utils';
 import { Backdrop } from '@mui/material';
 import CircularProgress from '@mui/material/CircularProgress';
-import { BACKEND_NAMES, BASE_IPFS_FILE_URL, HTTP_METHODS, ROUTE_GROUPS, ROUTE_PATHS } from '../../constants/constants';
+import { BACKEND_NAMES, BASE_IPFS_FILE_URL, GET_BACKEND_URL, HTTP_METHODS, ROUTE_GROUPS, ROUTE_PATHS } from '../../constants/constants';
 
 const Files = () => {
 
@@ -55,16 +55,26 @@ const Files = () => {
         setBackdropOpen(true)
 
         try {
-            // const response = await axios.post("http://localhost:8080/storj/file/uploadFile", formData, { options })
-            const response = await axios({
-                method: "post",
-                url: "http://localhost:8080/storj/file/uploadFile",
-                data: formData,
-                headers: { "Content-Type": "multipart/form-data" },
-            });
-            console.log("File Uploaded:", response.data);
-            if (response.data) {
+            if (bucketData.StorageBackend === "web3") {
+                const response = await axios({
+                    method: HTTP_METHODS.POST,
+                    url: `${GET_BACKEND_URL(BACKEND_NAMES.WEB3)}${ROUTE_GROUPS.FILE}/${ROUTE_PATHS.UPLOAD_FILE}`,
+                    data: formData,
+                    headers: { "Content-Type": "multipart/form-data" },
+                });
+                console.log("File Uploaded:", response.data);
                 setBackdropOpen(false)
+            } else {
+                const response = await axios({
+                    method: "post",
+                    url: "http://localhost:8080/storj/file/uploadFile",
+                    data: formData,
+                    headers: { "Content-Type": "multipart/form-data" },
+                });
+                console.log("File Uploaded:", response.data);
+                if (response.data) {
+                    setBackdropOpen(false)
+                }   
             }
             simpleToast("File Uploaded Successfully", "success")
             getFiles();
@@ -72,7 +82,6 @@ const Files = () => {
             console.log(error)
             simpleToast("File Upload Failed", "error")
         }
-
     };
 
     const handleDownloadFileWeb3 = async (cid, fileName, bucketName) => {
