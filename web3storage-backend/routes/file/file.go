@@ -7,11 +7,11 @@ import (
 )
 
 func Routes(web3Routes *gin.RouterGroup) {
-	 fileRoutes := web3Routes.Group("file")
+	fileRoutes := web3Routes.Group("file")
 	{
-		 fileRoutes.POST("upload", file.UploadFiletoNetwork)
+		fileRoutes.POST("upload", file.UploadFiletoNetwork)
 		// fileRoutes.GET("download", downloadFile)
-		 fileRoutes.DELETE("delete", file.DeleteFile)
+		fileRoutes.DELETE("delete", file.DeleteFile)
 		// fileRoutes.GET("viewFileMetadata", viewFileMetadata)
 		// fileRoutes.GET("getHighLevelMetrics", getHighLevelMetrics)
 	}

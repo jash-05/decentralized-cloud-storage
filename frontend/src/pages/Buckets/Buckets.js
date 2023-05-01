@@ -102,16 +102,28 @@ const Buckets = () => {
         simpleToast("Bucket deleted successfully", "success")
     }
 
-    const handleEmptyBucket = async (bucketId) => {
+    const handleEmptyBucket = async (bucketId, StorageBackend) => {
         console.log("Emptying bucket", bucketId)
 
-        try {
-            const res = await axios.delete(`http://localhost:8080/storj/bucket/emptyBucket`, { params: { bucketId } })
-            console.log("Bucket emptied successfully", res.data)
-        } catch (err) {
-            console.error("Error occured while emptying bucket", err)
+        let res;
+        if (StorageBackend === "web3") {
+            const params = { bucketId }
+            res = await makeAxiosRequest(HTTP_METHODS.POST, BACKEND_NAMES.WEB3, ROUTE_GROUPS.BUCKET, ROUTE_PATHS.EMPTY_BUCKET, null, params)
+        } else {
+            const params = { bucketId }
+            res = await makeAxiosRequest(HTTP_METHODS.POST, BACKEND_NAMES.STORJ, ROUTE_GROUPS.BUCKET, ROUTE_PATHS.EMPTY_BUCKET, null, params)
         }
-        setDataDependency("reload1")
+        console.log(res)
+        setDataDependency(bucketId)
+        simpleToast("Bucket emptied successfully", "success")
+
+        // try {
+        //     const res = await axios.delete(`http://localhost:8080/storj/bucket/emptyBucket`, { params: { bucketId } })
+        //     console.log("Bucket emptied successfully", res.data)
+        // } catch (err) {
+        //     console.error("Error occured while emptying bucket", err)
+        // }
+        // setDataDependency("reload1")
 
     }
     const options = [

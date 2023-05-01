@@ -94,7 +94,7 @@ func UploadFile(c *gin.Context, filename string, file multipart.File, headerSize
 	renterDocumentUpdateResult, err := renterCollection.UpdateOne(
 		context.TODO(),
 		bson.M{"_id": bucket.RenterId},
-		bson.M{"$inc": bson.M{"totalStorage": newFile.SizeInGB, "totalNumberOfFiles": 1}},
+		bson.M{"$inc": bson.M{"totalStorageUsed": newFile.SizeInGB, "totalNumberOfFiles": 1}},
 	)
 
 	if err != nil {
@@ -116,7 +116,7 @@ func UploadFiletoNetwork(c *gin.Context) {
 	r.ParseMultipartForm(10 << 20)
 
 	//Get files from request and check the count
-	files := r.MultipartForm.File["myFile"]
+	files := r.MultipartForm.File["myFiles"]
 	if len(files) > 1 {
 		for _, file := range files {
 			f, err := file.Open()
@@ -130,7 +130,7 @@ func UploadFiletoNetwork(c *gin.Context) {
 			UploadFile(c, filename, f, (int(file.Size)), file.Header.Get("Content-Type"))
 		}
 	} else {
-		file, header, err := r.FormFile("myFile")
+		file, header, err := r.FormFile("myFiles")
 		if err != nil {
 			fmt.Println("Error retrieving file", err)
 			return
@@ -187,7 +187,7 @@ func DeleteFile(c *gin.Context) {
 	renterDocumentUpdateResult, err := renterCollection.UpdateOne(
 		context.TODO(),
 		bson.M{"_id": bucket.RenterId},
-		bson.M{"$inc": bson.M{"totalStorage": -file.SizeInGB, "totalNumberOfFiles": -1}},
+		bson.M{"$inc": bson.M{"totalStorageUsed": -file.SizeInGB, "totalNumberOfFiles": -1}},
 	)
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
