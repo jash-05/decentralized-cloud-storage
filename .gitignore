@@ -7715,3 +7715,4 @@ web3storage-backend/go.sum
 web3storage-backend/constants/constants.go
 web3storage-backend/tmp/main
 .DS_Store
+web3storage-backend/tmp/air_errors.log
