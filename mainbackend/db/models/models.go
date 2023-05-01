@@ -21,12 +21,13 @@ type NewBucketRequestBody struct {
 }
 
 type Bucket struct {
-	ID             primitive.ObjectID `bson:"_id,omitempty"`
-	BucketName     string             `bson:"bucketName" json:"bucketName"`
-	RenterId       primitive.ObjectID `bson:"renterId" json:"renterId"`
-	CreationTime   time.Time          `bson:"creationTime"`
-	StorageBackend string             `bson:"storageBackend" json:"storageBackend"`
-	Files          []File             `bson:"files"`
+	ID              primitive.ObjectID `bson:"_id,omitempty"`
+	BucketName      string             `bson:"bucketName" json:"bucketName"`
+	BucketNameAlias string             `bson:"bucketNameAlias"`
+	RenterId        primitive.ObjectID `bson:"renterId" json:"renterId"`
+	CreationTime    time.Time          `bson:"creationTime"`
+	StorageBackend  string             `bson:"storageBackend" json:"storageBackend"`
+	Files           []File             `bson:"files"`
 }
 
 type NewRenterRequestBody struct {

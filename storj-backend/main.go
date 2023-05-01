@@ -15,11 +15,11 @@ func main() {
 	http.HandleFunc("/storj/file/uploadFile", file.UploadFile)
 	http.HandleFunc("/storj/file/downloadFile", file.DownloadFile)
 	http.HandleFunc("/storj/file/deleteFile", file.DeleteFile)
-	http.HandleFunc("/storj/bucket/createBucket", bucket.CreateBucket)
+	http.HandleFunc("/storj/bucket/create", bucket.CreateBucket)
 	http.HandleFunc("/storj/bucket/getBucketsForRenter", bucket.GetBucketsForRenter)
 	http.HandleFunc("/storj/bucket/getFilesForBucket", bucket.GetFilesForBucket)
 	http.HandleFunc("/storj/bucket/emptyBucket", bucket.EmptyBucket)
-	http.HandleFunc("/storj/bucket/deleteBucket", bucket.DeleteBucket)
+	http.HandleFunc("/storj/bucket/delete", bucket.DeleteBucket)
 
 	err := config.DB.Ping(context.TODO(), nil)
 	if err != nil {

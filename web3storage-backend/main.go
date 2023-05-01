@@ -7,6 +7,7 @@ import (
 	"fmt"
 
 	"example.com/mainbackend/db/config"
+	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
 )
 
@@ -54,6 +55,7 @@ import (
 
 func main() {
 	router := gin.Default()
+	router.Use(cors.Default())
 	web3Routes := router.Group("web3")
 	fileroutes.Routes(web3Routes)
 	bucketroutes.Routes(web3Routes)
@@ -64,10 +66,8 @@ func main() {
 		fmt.Println("Error pinging to MongoDB: ", err)
 		panic(err)
 	} else {
-		fmt.Println("Pinged Mongo Successfullyy!")	
+		fmt.Println("Pinged Mongo Successfullyy!")
 	}
-
-
 
 	// c, err := w3s.NewClient(w3s.WithToken(mytoken))
 	// if err != nil {

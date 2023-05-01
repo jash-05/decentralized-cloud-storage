@@ -2,7 +2,10 @@ module example/backend
 
 go 1.20
 
-require storj.io/uplink v1.10.0
+require (
+	go.mongodb.org/mongo-driver v1.11.3
+	storj.io/uplink v1.10.0
+)
 
 require (
 	github.com/calebcase/tmpfile v1.0.3 // indirect
@@ -21,7 +24,6 @@ require (
 	github.com/youmark/pkcs8 v0.0.0-20181117223130-1be2e3e5546d // indirect
 	github.com/zeebo/blake3 v0.2.3 // indirect
 	github.com/zeebo/errs v1.3.0 // indirect
-	go.mongodb.org/mongo-driver v1.11.3 // indirect
 	golang.org/x/crypto v0.0.0-20220622213112-05595931fe9d // indirect
 	golang.org/x/sync v0.0.0-20220819030929-7fc1605a5dde // indirect
 	golang.org/x/sys v0.0.0-20220520151302-bc2c85ada10a // indirect

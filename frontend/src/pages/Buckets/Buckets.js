@@ -12,7 +12,8 @@ import { ListGroup, ListGroupItem } from 'react-bootstrap'
 import BasicTable from '../../components/BasicTable'
 import AddCircleOutlineOutlinedIcon from '@mui/icons-material/AddCircleOutlineOutlined';
 import axios from 'axios'
-import { simpleToast } from '../../services/utils'
+import { makeAxiosRequest, simpleToast } from '../../services/utils'
+import { BACKEND_NAMES, HTTP_METHODS, ROUTE_GROUPS, ROUTE_PATHS } from '../../constants/constants'
 
 
 const Buckets = () => {
@@ -37,21 +38,22 @@ const Buckets = () => {
         console.log(selected)
         setNetwork(selected)
     }
+
     const handleCreateNewBucket = async (event) => {
         event.preventDefault()
         console.log("Creating new bucket", bucketName, network, renterId)
         simpleToast("Creating new bucket", "loading", 1000)
-        try {
-            const res = await axios.post(`http://localhost:8080/storj/bucket/createBucket`, null, { params: { bucketName, renterId } })
-            console.log("Bucket created successfully", res.data)
-            setDataDependency(res.data)
-            simpleToast("Bucket created successfully", "success")
+        let res;
+        if (network === "web3") {
+            const payload = { bucketName, renterId }
+            res = await makeAxiosRequest(HTTP_METHODS.POST, BACKEND_NAMES.WEB3, ROUTE_GROUPS.BUCKET, ROUTE_PATHS.CREATE_BUCKET, payload, null)
+        } else {
+            const params = { bucketName, renterId }
+            res = await makeAxiosRequest(HTTP_METHODS.POST, BACKEND_NAMES.STORJ, ROUTE_GROUPS.BUCKET, ROUTE_PATHS.CREATE_BUCKET, null, params)
         }
-
-        catch (err) {
-            console.log("Error occured while creating bucket", err)
-            simpleToast("Error occured while creating bucket", "error")
-        }
+        console.log("Bucket created successfully", res)
+        setDataDependency(res)
+        simpleToast("Bucket created successfully", "success")
 
         handleClose()
     }
@@ -61,46 +63,44 @@ const Buckets = () => {
     }
 
     const [dataDepenency, setDataDependency] = useState('')
-    const [bucketsData, setBucketsData] = useState([
-        {
-            id: "5f9f1b0b-1b1a-4b1a-9c1a-1b1a4b1a9c1a",
-            name: "testbucket",
-            network: "storj",
-            created: "2021-10-05T15:00:00.000Z",
-            objects: 2
-        },
-        {
-            id: "4f8f1b0b-1b1a-4b1a-9c1a-1b1a4b1a9c1a",
-            name: "testbucket2",
-            network: "storj",
-            created: "2021-10-05T15:00:00.000Z",
-            objects: 41
-        },
-        {
-            id: "3f7f1b0b-1b1a-4b1a-9c1a-1b1a4b1a9c1a",
-            name: "testbucket3",
-            network: "ipfs",
-            created: "2021-10-05T15:00:00.000Z",
-            objects: 20
+    // const [bucketsData, setBucketsData] = useState([
+    //     {
+    //         id: "5f9f1b0b-1b1a-4b1a-9c1a-1b1a4b1a9c1a",
+    //         name: "testbucket",
+    //         network: "storj",
+    //         created: "2021-10-05T15:00:00.000Z",
+    //         objects: 2
+    //     },
+    //     {
+    //         id: "4f8f1b0b-1b1a-4b1a-9c1a-1b1a4b1a9c1a",
+    //         name: "testbucket2",
+    //         network: "storj",
+    //         created: "2021-10-05T15:00:00.000Z",
+    //         objects: 41
+    //     },
+    //     {
+    //         id: "3f7f1b0b-1b1a-4b1a-9c1a-1b1a4b1a9c1a",
+    //         name: "testbucket3",
+    //         network: "ipfs",
+    //         created: "2021-10-05T15:00:00.000Z",
+    //         objects: 20
+    //     }
+    // ])
+    const [bucketsData, setBucketsData] = useState([])
+
+    const handleDeleteBucket = async (bucketId, StorageBackend) => {
+        console.log("Deleting bucket", bucketId, StorageBackend)
+        let res;
+        if (StorageBackend === "web3") {
+            const params = { bucketId }
+            res = await makeAxiosRequest(HTTP_METHODS.DELETE, BACKEND_NAMES.WEB3, ROUTE_GROUPS.BUCKET, ROUTE_PATHS.DELETE_BUCKET, null, params)
+        } else {
+            const params = { bucketId }
+            res = await makeAxiosRequest(HTTP_METHODS.GET, BACKEND_NAMES.STORJ, ROUTE_GROUPS.BUCKET, ROUTE_PATHS.DELETE_BUCKET, null, params)
         }
-    ])
-
-    const handleDeleteBucket = async (bucketId) => {
-
-        console.log("Deleting bucket", bucketId)
-
-        try {
-            const res = await axios.delete(`http://localhost:8080/storj/bucket/deleteBucket`, { params: { bucketId } })
-
-            console.log("Bucket deleted successfully", res.data)
-            // setDataDependency(res.data)
-
-        } catch (err) {
-            console.error("Error occured while deleting bucket", err)
-        }
-
-        setDataDependency("reload")
-
+        console.log(res)
+        setDataDependency(bucketId)
+        simpleToast("Bucket deleted successfully", "success")
     }
 
     const handleEmptyBucket = async (bucketId) => {
@@ -133,12 +133,9 @@ const Buckets = () => {
     const [loading, setLoading] = useState(true)
 
     const fetchBucketsforRenter = async () => {
-        // const id = getCurrentUser()
-        // const data = await getBucketsforRenter(id)
-        // setBucketsData(data)
-        // const id = getCurrentUser()
-
-        const data = await getBucketsforRenter(renterId)
+        
+        const id = getCurrentUser()
+        const data = await getBucketsforRenter(id)
         setBucketsData(data)
     }
 
