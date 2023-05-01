@@ -164,7 +164,7 @@ func UploadFile(w http.ResponseWriter, r *http.Request) {
 		renterDocumentUpdateResult, err := renterCollection.UpdateOne(
 			sessionContext,
 			bson.M{"_id": bucket.RenterId},
-			bson.M{"$inc": bson.M{"totalStorage": totalFilesSize, "totalNumberOfFiles": totalNumberOfFiles}},
+			bson.M{"$inc": bson.M{"totalStorageUsed": totalFilesSize, "totalNumberOfFiles": totalNumberOfFiles}},
 		)
 		if err != nil {
 			return nil, fmt.Errorf("error adding file metrics to renter collection: %v", err)
@@ -376,7 +376,7 @@ func DeleteFile(w http.ResponseWriter, r *http.Request) {
 		renterDocumentUpdateResult, err := renterCollection.UpdateOne(
 			sessionContext,
 			bson.M{"_id": bucket.RenterId},
-			bson.M{"$inc": bson.M{"totalStorage": -file.SizeInGB, "totalNumberOfFiles": -1}},
+			bson.M{"$inc": bson.M{"totalStorageUsed": -file.SizeInGB, "totalNumberOfFiles": -1}},
 		)
 		if err != nil {
 			return nil, fmt.Errorf("error deleting file metrics from renter collection: %v", err)

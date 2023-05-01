@@ -94,7 +94,7 @@ func UploadFile(c *gin.Context, filename string, file multipart.File, headerSize
 	renterDocumentUpdateResult, err := renterCollection.UpdateOne(
 		context.TODO(),
 		bson.M{"_id": bucket.RenterId},
-		bson.M{"$inc": bson.M{"totalStorage": newFile.SizeInGB, "totalNumberOfFiles": 1}},
+		bson.M{"$inc": bson.M{"totalStorageUsed": newFile.SizeInGB, "totalNumberOfFiles": 1}},
 	)
 
 	if err != nil {
@@ -187,7 +187,7 @@ func DeleteFile(c *gin.Context) {
 	renterDocumentUpdateResult, err := renterCollection.UpdateOne(
 		context.TODO(),
 		bson.M{"_id": bucket.RenterId},
-		bson.M{"$inc": bson.M{"totalStorage": -file.SizeInGB, "totalNumberOfFiles": -1}},
+		bson.M{"$inc": bson.M{"totalStorageUsed": -file.SizeInGB, "totalNumberOfFiles": -1}},
 	)
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
