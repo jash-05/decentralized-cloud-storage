@@ -7,9 +7,9 @@ const printErrorMessage = (err) => {
     console.log(`Error occured: ${err}`)
 }
 
-const makeGetRequest = async (requestUrl, payload) => {
+const makeGetRequest = async (requestUrl, params) => {
     try {
-        const { data } = await axios.get(requestUrl, payload)
+        const { data } = await axios.get(requestUrl, { params: params})
         return data
     } catch (err) {
         printErrorMessage(err, requestUrl, 'GET')
@@ -37,9 +37,9 @@ const makePutRequest = async (requestUrl, payload) => {
     }
 }
 
-const makeDeleteRequest = async (requestUrl, payload) => {
+const makeDeleteRequest = async (requestUrl, params) => {
     try {
-        const { data } = await axios.delete(requestUrl, payload)
+        const { data } = await axios.delete(requestUrl, { params: params})
         return data
     } catch (err) {
         printErrorMessage(err, requestUrl, 'DELETE')
@@ -58,13 +58,13 @@ export const makeAxiosRequest = async (method, backendName, routeGroup, routePat
 
     switch (method) {
         case HTTP_METHODS.GET:
-            return await makeGetRequest(requestUrl, payload)
+            return await makeGetRequest(requestUrl, params)
         case HTTP_METHODS.POST:
             return await makePostRequest(requestUrl, payload, params)
         case HTTP_METHODS.PUT:
             return await makePutRequest(requestUrl, payload)
         case HTTP_METHODS.DELETE:
-            return await makeDeleteRequest(requestUrl, payload)
+            return await makeDeleteRequest(requestUrl, params)
         default:
             console.log(`Invalid API method: ${method}`)
             return {}

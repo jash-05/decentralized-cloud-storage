@@ -88,22 +88,19 @@ const Buckets = () => {
     // ])
     const [bucketsData, setBucketsData] = useState([])
 
-    const handleDeleteBucket = async (bucketId) => {
-
-        console.log("Deleting bucket", bucketId)
-
-        try {
-            const res = await axios.delete(`http://localhost:8080/storj/bucket/deleteBucket`, { params: { bucketId } })
-
-            console.log("Bucket deleted successfully", res.data)
-            // setDataDependency(res.data)
-
-        } catch (err) {
-            console.error("Error occured while deleting bucket", err)
+    const handleDeleteBucket = async (bucketId, StorageBackend) => {
+        console.log("Deleting bucket", bucketId, StorageBackend)
+        let res;
+        if (StorageBackend === "web3") {
+            const params = { bucketId }
+            res = await makeAxiosRequest(HTTP_METHODS.DELETE, BACKEND_NAMES.WEB3, ROUTE_GROUPS.BUCKET, ROUTE_PATHS.DELETE_BUCKET, null, params)
+        } else {
+            const params = { bucketId }
+            res = await makeAxiosRequest(HTTP_METHODS.GET, BACKEND_NAMES.STORJ, ROUTE_GROUPS.BUCKET, ROUTE_PATHS.DELETE_BUCKET, null, params)
         }
-
-        setDataDependency("reload")
-
+        console.log(res)
+        setDataDependency(bucketId)
+        simpleToast("Bucket deleted successfully", "success")
     }
 
     const handleEmptyBucket = async (bucketId) => {
