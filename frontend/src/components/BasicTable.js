@@ -55,7 +55,7 @@ export default function BasicTable({ headers, rowData, page, options, handleDele
                                         <TableCell sx={{ backgroundColor: "#70A1EB", fontWeight: "600" }} align="center"><span>{(row.StorageBackend)?.toUpperCase()}</span></TableCell>}
                                     <TableCell align="center">{row?.Files ? row.Files.length : 0}</TableCell>
                                     <TableCell align="center">{moment(row?.CreationTime).format('LLL')}</TableCell>
-                                    <OptionsMenu options={options} bucketId={row?.ID} />
+                                    <OptionsMenu options={options} bucketId={row?.ID} StorageBackend={row?.StorageBackend}/>
 
                                     {/* <Tooltip title="Delete">
                                         <IconButton>

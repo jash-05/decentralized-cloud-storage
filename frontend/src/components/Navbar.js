@@ -21,7 +21,7 @@ const Navbar = () => {
             </div>
             <div className="starter-buttons">
                 <Button onClick={navigateToLogin} text="Login" style={{ backgroundColor: "#FFD817" }} ></Button>
-                <Button onClick={navigateToSignup} text="Try for free" style={{ backgroundColor: "#70A1EB" }} />
+                <Button onClick={navigateToSignup} text="Register" style={{ backgroundColor: "#70A1EB" }} />
             </div>
         </div >
     )
