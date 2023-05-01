@@ -19,7 +19,7 @@ import (
 	"go.mongodb.org/mongo-driver/bson/primitive"
 )
 
-func UploadFile(c *gin.Context,filename string, file multipart.File, headerSize int, contentType string ){
+func UploadFile(c *gin.Context, filename string, file multipart.File, headerSize int, contentType string) {
 
 	var r *http.Request = c.Request
 	var w http.ResponseWriter = c.Writer
@@ -36,12 +36,19 @@ func UploadFile(c *gin.Context,filename string, file multipart.File, headerSize 
 	byteswritten, err := f.Write(fileBytes)
 	fmt.Println("Bytes written : ", byteswritten)
 
-	cid, err := access.Put(ctx, f)
+	new_f, err := os.Open(filename)
+	if err != nil {
+		fmt.Println("Could not open file")
+	}
+
+	cid, err := access.Put(ctx, new_f)
 	if err != nil {
 		fmt.Println("Could not upload file", filename, err)
 	}
 
-	fmt.Printf("File upload successfull with cid %s", cid)
+	fmt.Printf("File upload successfull with cid %s\n", cid)
+
+	defer os.Remove(filename)
 
 	//Updating Mongo DB by removing files from Renters
 	bucketId, _ := primitive.ObjectIDFromHex(r.Form.Get("bucketId"))
@@ -62,14 +69,13 @@ func UploadFile(c *gin.Context,filename string, file multipart.File, headerSize 
 	fmt.Println("Bucket name: ", bucket.BucketName)
 	fmt.Println("Renter ID: ", bucket.RenterId)
 
-
 	newFile := models.File{
 		ID:             primitive.NewObjectID(),
 		Name:           filename,
 		SizeInGB:       float64(headerSize) * 9.31 * math.Pow(10, -10),
 		UploadDateTime: time.Now(),
 		Type:           contentType,
-		Cid:			cid.String(),
+		Cid:            cid.String(),
 	}
 
 	bucketDocumentUpdateResult, err := bucketCollection.UpdateOne(
@@ -77,24 +83,24 @@ func UploadFile(c *gin.Context,filename string, file multipart.File, headerSize 
 		bson.M{"_id": bucketId},
 		bson.M{"$push": bson.M{"files": newFile}},
 	)
-	
+
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
-		w.Write([] byte("File info upload to mongo failed : " + err.Error()))
+		w.Write([]byte("File info upload to mongo failed : " + err.Error()))
 	} else {
 		fmt.Println("File info upload to MongoDB successful modified count: ", bucketDocumentUpdateResult.ModifiedCount)
 	}
-	
+
 	renterDocumentUpdateResult, err := renterCollection.UpdateOne(
 		context.TODO(),
 		bson.M{"_id": bucket.RenterId},
 		bson.M{"$inc": bson.M{"totalStorage": newFile.SizeInGB, "totalNumberOfFiles": 1}},
 	)
 
-	if err!=nil{
+	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
 		w.Write([]byte("File info upload to MongoDB failed 2: " + err.Error()))
-	} else{
+	} else {
 		fmt.Println("File info upload to MongoDB renter collection successful modified count: ", renterDocumentUpdateResult.ModifiedCount)
 	}
 	w.WriteHeader(http.StatusOK)
@@ -111,7 +117,7 @@ func UploadFiletoNetwork(c *gin.Context) {
 
 	//Get files from request and check the count
 	files := r.MultipartForm.File["myFile"]
-	if(len(files) > 1){
+	if len(files) > 1 {
 		for _, file := range files {
 			f, err := file.Open()
 			if err != nil {
@@ -121,23 +127,23 @@ func UploadFiletoNetwork(c *gin.Context) {
 			}
 			defer f.Close()
 			filename := file.Filename
-			UploadFile(c, filename, f, (int( file.Size)), file.Header.Get("Content-Type"))
+			UploadFile(c, filename, f, (int(file.Size)), file.Header.Get("Content-Type"))
 		}
 	} else {
 		file, header, err := r.FormFile("myFile")
-	 if err != nil {
-	 	fmt.Println("Error retrieving file", err)
-	 	return
-	 }
+		if err != nil {
+			fmt.Println("Error retrieving file", err)
+			return
+		}
 
-	 defer file.Close()
+		defer file.Close()
 
-	 fmt.Println("Uploading File : ", header.Filename)
+		fmt.Println("Uploading File : ", header.Filename)
 
-	 var filename string = header.Filename	
-	 UploadFile(c, filename, file, (int(header.Size)), header.Header.Get("Content-Type"))
+		var filename string = header.Filename
+		UploadFile(c, filename, file, (int(header.Size)), header.Header.Get("Content-Type"))
 	}
-	
+
 }
 
 func DeleteFile(c *gin.Context) {
@@ -145,7 +151,7 @@ func DeleteFile(c *gin.Context) {
 	var w http.ResponseWriter = c.Writer
 
 	r.ParseMultipartForm(10 << 20)
-	
+
 	bucketId, _ := primitive.ObjectIDFromHex(r.Form.Get("bucketId"))
 	fileId, _ := primitive.ObjectIDFromHex(r.Form.Get("fileId"))
 
@@ -168,51 +174,50 @@ func DeleteFile(c *gin.Context) {
 	} else {
 		fmt.Println("Bucket fetched, Bucket name: ", bucket.BucketName)
 	}
-	
+
 	bucketDocumentUpdateResult, err := bucketCollection.UpdateByID(context.TODO(), bucketId, bson.M{"$pull": bson.M{"files": bson.M{"_id": fileId}}})
-		if err != nil {
-			w.WriteHeader(http.StatusInternalServerError)
-			w.Write([]byte("File info upload to MongoDB failed 1: " + err.Error()))
-			return
-		} else {
-			fmt.Println("File info update in MongoDB bucket collection successful modified count: ", bucketDocumentUpdateResult.ModifiedCount)
-		}
+	if err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+		w.Write([]byte("File info upload to MongoDB failed 1: " + err.Error()))
+		return
+	} else {
+		fmt.Println("File info update in MongoDB bucket collection successful modified count: ", bucketDocumentUpdateResult.ModifiedCount)
+	}
 
-		renterDocumentUpdateResult, err := renterCollection.UpdateOne(
-			context.TODO(),
-			bson.M{"_id": bucket.RenterId},
-			bson.M{"$inc": bson.M{"totalStorage": -file.SizeInGB, "totalNumberOfFiles": -1}},
-		)
-		if err != nil {
-			w.WriteHeader(http.StatusInternalServerError)
-			w.Write([]byte("File info upload to MongoDB failed 2: " + err.Error()))
-			return
-		} else {
-			fmt.Println("File info update in MongoDB renter collection successful modified count: ", renterDocumentUpdateResult.ModifiedCount)
-		}
+	renterDocumentUpdateResult, err := renterCollection.UpdateOne(
+		context.TODO(),
+		bson.M{"_id": bucket.RenterId},
+		bson.M{"$inc": bson.M{"totalStorage": -file.SizeInGB, "totalNumberOfFiles": -1}},
+	)
+	if err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+		w.Write([]byte("File info upload to MongoDB failed 2: " + err.Error()))
+		return
+	} else {
+		fmt.Println("File info update in MongoDB renter collection successful modified count: ", renterDocumentUpdateResult.ModifiedCount)
+	}
 
-		w.WriteHeader(http.StatusOK)
-		w.Write([]byte("Deleted successfully"))
+	w.WriteHeader(http.StatusOK)
+	w.Write([]byte("Deleted successfully"))
 
 }
 
-
 // func DownloadFile(c *gin.Context) {
-	
+
 // 	/*Steps:
 
 // 		you will get renter, bucket name > file name > fetch the cid of this file
 // 		1. get bucket name and file name
 // 		2. use them to filter out the mongo collection in buckets collection
 // 		3. use the cid value in under files to form a url
-// 		4. url = https:// + cid+ filename  
+// 		4. url = https:// + cid+ filename
 
 // 	*/
-	
+
 // 	var r *http.Request = c.Request;
 // 	var w http.ResponseWriter = c.Writer
 // 	r.ParseForm()
-	
+
 // 	bucketCollection := config.GetCollection(config.DB, "buckets")
 // 	//renterCollection := config.GetCollection(config.DB, "renter")
 
@@ -229,6 +234,3 @@ func DeleteFile(c *gin.Context) {
 // 		return
 // 	}
 // }
-
-
-
