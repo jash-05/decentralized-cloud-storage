@@ -37,7 +37,6 @@ const Register = () => {
     const handleRegister = async event => {
         event.preventDefault();
 
-        console.log("here")
         const data = new FormData(event.currentTarget);
 
         const payload = {

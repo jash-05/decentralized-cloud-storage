@@ -4,7 +4,8 @@ import ObjectInfo from "./ObjectInfo";
 import DataUsageGraph from "./DataUsageGraph";
 import "../styles/Dashboard.css";
 
-export default function Overview() {
+export default function Overview({ data }) {
+
 	return (
 		<div
 			style={{
@@ -14,9 +15,9 @@ export default function Overview() {
 		>
 			<div>
 				<div style={{ display: "flex", justifyContent: "center" }}>
-					<ObjectInfo text={"Buckets"} count={"1"}></ObjectInfo>
-					<ObjectInfo text={"Total Objects"} count={"1"}></ObjectInfo>
-					<ObjectInfo text={"Total Storage"} count={"1"}></ObjectInfo>
+					<ObjectInfo text={"Buckets"} count={data?.totalBuckets}></ObjectInfo>
+					<ObjectInfo text={"Total Objects"} count={data?.totalNumberOfFiles}></ObjectInfo>
+					<ObjectInfo text={"Total Storage"} count={data?.totalStorageUsed}></ObjectInfo>
 				</div>
 
 				<div className="datausage-graph">
