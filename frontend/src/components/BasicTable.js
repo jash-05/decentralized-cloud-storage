@@ -9,14 +9,14 @@ import Paper from '@mui/material/Paper';
 import moment from 'moment';
 // import { Link } from '@mui/material';
 import { NavLink } from 'react-router-dom';
-// import OptionsMenu from './Options';
+import OptionsMenu from './Options';
 import { IconButton, Tooltip } from '@mui/material';
 import FileDownloadIcon from '@mui/icons-material/FileDownload';
 import DeleteIcon from '@mui/icons-material/Delete';
+import ClearIcon from '@mui/icons-material/Clear';
 
 
-export default function BasicTable({ headers, rowData, page, options, handleDeleteFile, handleDownloadFile, handleDeleteBucket }) {
-
+export default function BasicTable({ headers, rowData, page, options, handleDeleteFile, handleDownloadFile }) {
 
     return (
         <TableContainer component={Paper} style={{ borderRadius: "10px", overflowY: "scroll", height: "70vh" }} >
@@ -55,16 +55,30 @@ export default function BasicTable({ headers, rowData, page, options, handleDele
                                         <TableCell sx={{ backgroundColor: "#70A1EB", fontWeight: "600" }} align="center"><span>{(row.StorageBackend)?.toUpperCase()}</span></TableCell>}
                                     <TableCell align="center">{row?.Files ? row.Files.length : 0}</TableCell>
                                     <TableCell align="center">{moment(row?.CreationTime).format('LLL')}</TableCell>
-                                    <Tooltip title="Delete">
+                                    <OptionsMenu options={options} bucketId={row?.ID} />
+
+                                    {/* <Tooltip title="Delete">
                                         <IconButton>
                                             <DeleteIcon sx={{
                                                 ":hover": {
                                                     color: "red"
                                                 },
                                                 color: "black"
-                                            }} tooltip='delete' />
+                                            }} tooltip='delete'
+                                                onClick={() => (handleDeleteBucket)(row?.ID)} />
                                         </IconButton>
                                     </Tooltip>
+                                    <Tooltip title="Empty">
+                                        <IconButton>
+                                            <ClearIcon sx={{
+                                                ":hover": {
+                                                    color: "red"
+                                                },
+                                                color: "black"
+                                            }} tooltip='empty'
+                                                onClick={() => (handleEmptyBucket)(row?.ID)} />
+                                        </IconButton>
+                                    </Tooltip> */}
                                 </TableRow>
                             ))
 

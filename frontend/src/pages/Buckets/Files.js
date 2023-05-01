@@ -23,14 +23,14 @@ const Files = () => {
 
     const [backdropOpen, setBackdropOpen] = React.useState(false);
     // const [loading, setLoading] = useState(false);
-    const [file, setFile] = useState();
+    const [files, setFiles] = useState();
     const location = useLocation();
     const [data, setData] = useState([])
     const bucketData = location.state?.payload;
 
     const handleFileChange = (e) => {
         console.log(e.target.files);
-        setFile(e.target.files);
+        setFiles(e.target.files);
         if (e.target.files.length > 0) {
             handleClickOpen();
         }
@@ -38,17 +38,20 @@ const Files = () => {
 
     const handleFileUpload = async (event) => {
 
-        console.log(file);
+        const files_array = Object.values(files);
+
+        console.log(files);
         event.preventDefault()
         const formData = new FormData();
-        formData.append("myFile", file[0]);
+        formData.append("myFiles", files_array);
         formData.append("bucketId", bucketData?.ID);
         console.log("formData", formData)
-        console.log("myFile", file)
+        console.log("myFiles", files_array)
         console.log("bucketId", bucketData?.ID)
         // simpleToast("Uploading File", "loading")
         setOpen(false);
         setBackdropOpen(true)
+
 
         try {
             // const response = await axios.post("http://localhost:8080/storj/file/uploadFile", formData, { options })
@@ -121,33 +124,34 @@ const Files = () => {
         getFiles();
     }
 
-    const options = [
-        {
-            id: 1,
-            name: "Download",
-            handler: handleDownloadFile
-        },
-        {
-            id: 2,
-            name: "Delete",
-            handler: handleDeleteFile
-        }
-    ]
+    // const options = [
+    //     {
+    //         id: 1,
+    //         name: "Download",
+    //         handler: handleDownloadFile
+    //     },
+    //     {
+    //         id: 2,
+    //         name: "Delete",
+    //         handler: handleDeleteFile
+    //     }
+    // ]
 
     const getFiles = async () => {
+
         const res = await axios.get("http://localhost:8080/storj/bucket/getFilesForBucket", { params: { bucketId: bucketData?.ID } })
-        console.log("Bucket Data:", res.data)
+        console.log("Bucket Data:", bucketData)
         setData(res.data)
     }
     useEffect(() => {
         getFiles();
-    }, [])
+    }, [bucketData])
 
     return (
         <div className="files-wrapper">
-            <AlertDialogSlide open={open} handleClose={handleClose} handleFileUpload={handleFileUpload} fileList={file} />
+            <AlertDialogSlide open={open} handleClose={handleClose} handleFileUpload={handleFileUpload} fileList={files} />
             <div className='files-header'>
-                <h1>Files</h1>
+                <h1>{bucketData?.BucketNameAlias}</h1>
                 <div>
                     <label for="fileUpload" style={{
                         backgroundColor:
@@ -168,7 +172,8 @@ const Files = () => {
             </div>
             <br />
             <div className='buckets-list-wrapper'>
-                <BasicTable page="file" headers={["Name", "Size (in GB)", "Type"]} rowData={data} handleDownloadFile={handleDownloadFile} handleDeleteFile={handleDeleteFile} options={options} />
+                <BasicTable page="file" headers={["Name", "Size (in GB)", "Type"]} rowData={data} handleDownloadFile={handleDownloadFile} handleDeleteFile={handleDeleteFile}
+                />
             </div>
             <Backdrop
                 sx={{ color: '#fff', zIndex: (theme) => theme.zIndex.drawer + 10 }}

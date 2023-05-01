@@ -25,6 +25,7 @@ const Buckets = () => {
     const CustomIconStyle = { height: "100%", verticalAlign: "-30%", marginRight: "5%" }
 
     const renterId = getCurrentUser()
+    // const renterId = localStorage.getItem("renterId")
     const [bucketName, setBucketName] = useState('')
     const [network, setNetwork] = useState('storj')
 
@@ -84,17 +85,62 @@ const Buckets = () => {
         }
     ])
 
+    const handleDeleteBucket = async (bucketId) => {
+
+        console.log("Deleting bucket", bucketId)
+
+        try {
+            const res = await axios.delete(`http://localhost:8080/storj/bucket/deleteBucket`, { params: { bucketId } })
+
+            console.log("Bucket deleted successfully", res.data)
+            // setDataDependency(res.data)
+
+        } catch (err) {
+            console.error("Error occured while deleting bucket", err)
+        }
+
+        setDataDependency("reload")
+
+    }
+
+    const handleEmptyBucket = async (bucketId) => {
+        console.log("Emptying bucket", bucketId)
+
+        try {
+            const res = await axios.delete(`http://localhost:8080/storj/bucket/emptyBucket`, { params: { bucketId } })
+            console.log("Bucket emptied successfully", res.data)
+            // setDataDependency(res.data)
+
+        } catch (err) {
+            console.error("Error occured while emptying bucket", err)
+        }
+        setDataDependency("reload1")
+
+    }
+    const options = [
+        {
+            id: 1,
+            name: "Delete Bucket",
+            handler: handleDeleteBucket
+        },
+        {
+            id: 2,
+            name: "Empty Bucket",
+            handler: handleEmptyBucket
+        }
+    ]
 
     const [loading, setLoading] = useState(true)
 
     const fetchBucketsforRenter = async () => {
-        const id = getCurrentUser()
-        const data = await getBucketsforRenter(id)
+        // const id = getCurrentUser()
+        // const data = await getBucketsforRenter(id)
+        // setBucketsData(data)
+        // const id = getCurrentUser()
+
+        const data = await getBucketsforRenter(renterId)
         setBucketsData(data)
     }
-
-    // const handleDeleteBucket = async (bucketId) => {
-    // }
 
     useEffect(() => {
 
@@ -115,7 +161,7 @@ const Buckets = () => {
             </div>
             <br />
             <div className='buckets-list-wrapper'>
-                <BasicTable page={"bucket"} headers={["Name", "Network", "Objects", "Created"]} rowData={bucketsData} />
+                <BasicTable page={"bucket"} headers={["Name", "Network", "Objects", "Created"]} rowData={bucketsData} handleDeleteBucket={handleDeleteBucket} handleEmptyBucket={handleEmptyBucket} options={options} />
             </div>
         </div >
     )
