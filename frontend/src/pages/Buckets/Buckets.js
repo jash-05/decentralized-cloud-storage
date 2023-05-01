@@ -61,29 +61,30 @@ const Buckets = () => {
     }
 
     const [dataDepenency, setDataDependency] = useState('')
-    const [bucketsData, setBucketsData] = useState([
-        {
-            id: "5f9f1b0b-1b1a-4b1a-9c1a-1b1a4b1a9c1a",
-            name: "testbucket",
-            network: "storj",
-            created: "2021-10-05T15:00:00.000Z",
-            objects: 2
-        },
-        {
-            id: "4f8f1b0b-1b1a-4b1a-9c1a-1b1a4b1a9c1a",
-            name: "testbucket2",
-            network: "storj",
-            created: "2021-10-05T15:00:00.000Z",
-            objects: 41
-        },
-        {
-            id: "3f7f1b0b-1b1a-4b1a-9c1a-1b1a4b1a9c1a",
-            name: "testbucket3",
-            network: "ipfs",
-            created: "2021-10-05T15:00:00.000Z",
-            objects: 20
-        }
-    ])
+    // const [bucketsData, setBucketsData] = useState([
+    //     {
+    //         id: "5f9f1b0b-1b1a-4b1a-9c1a-1b1a4b1a9c1a",
+    //         name: "testbucket",
+    //         network: "storj",
+    //         created: "2021-10-05T15:00:00.000Z",
+    //         objects: 2
+    //     },
+    //     {
+    //         id: "4f8f1b0b-1b1a-4b1a-9c1a-1b1a4b1a9c1a",
+    //         name: "testbucket2",
+    //         network: "storj",
+    //         created: "2021-10-05T15:00:00.000Z",
+    //         objects: 41
+    //     },
+    //     {
+    //         id: "3f7f1b0b-1b1a-4b1a-9c1a-1b1a4b1a9c1a",
+    //         name: "testbucket3",
+    //         network: "ipfs",
+    //         created: "2021-10-05T15:00:00.000Z",
+    //         objects: 20
+    //     }
+    // ])
+    const [bucketsData, setBucketsData] = useState([])
 
     const handleDeleteBucket = async (bucketId) => {
 
