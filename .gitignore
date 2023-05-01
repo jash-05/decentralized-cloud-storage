@@ -7733,3 +7733,10 @@ web3storage-backend/go.sum
 web3storage-backend/tmp/
 storj-backend/tmp/main
 storj-backend/tmp/build-errors.log
+storj-backend/constants/constants.go
+.gitignore
+storj-backend/tmp/build-errors.log
+.gitignore
+storj-backend/go.mod
+.gitignore
+storj-backend/tmp/main

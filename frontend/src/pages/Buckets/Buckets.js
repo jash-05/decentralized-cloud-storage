@@ -133,12 +133,9 @@ const Buckets = () => {
     const [loading, setLoading] = useState(true)
 
     const fetchBucketsforRenter = async () => {
-        // const id = getCurrentUser()
-        // const data = await getBucketsforRenter(id)
-        // setBucketsData(data)
-        // const id = getCurrentUser()
-
-        const data = await getBucketsforRenter(renterId)
+        
+        const id = getCurrentUser()
+        const data = await getBucketsforRenter(id)
         setBucketsData(data)
     }
 

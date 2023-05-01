@@ -67,7 +67,7 @@ const Register = () => {
 
     return (
 
-        <div className='register-wrapper'>
+        <div className='landing-page-wrapper'>
             <Container component="main" maxWidth="md" sx={{ minHeight: "600px", }}>
                 <CssBaseline />
                 <Box
@@ -80,6 +80,7 @@ const Register = () => {
                         minHeight: "600px",
                         borderRadius: "20px",
                         paddingTop: "10%",
+                        paddingBottom: "5%"
                     }}
                 >
                     <img style={{ maxHeight: "80px", minHeight: "80px" }} src={logo} alt="logo" />
