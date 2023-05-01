@@ -44,7 +44,7 @@ type UpdateRenterRequestBody struct {
 	FirstName string `json:"firstName"`
 	LastName  string `json:"lastName"`
 	Email     string `json:"email"`
-	Password  string `bson:"password" json:"password"`
+	// Password  string `bson:"password" json:"password"`
 	Mobile    string `bson:"mobile" json:"mobile"`
 	Location  string `bson:"location" json:"location"`
 }

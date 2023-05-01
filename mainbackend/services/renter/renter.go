@@ -135,9 +135,9 @@ func UpdateProfile(c *gin.Context) {
 		"firstName": newRenter.FirstName,
 		 "lastName": newRenter.LastName, 
 		 "email": newRenter.Email, 
-		 "password": newRenter.Password,
-		  "mobile": newRenter.Mobile,
-		   "location": newRenter.Location,
+		//  "password": newRenter.Password,
+		"mobile": newRenter.Mobile,
+		"location": newRenter.Location,
 	}
 
 	result, err := renterCollection.UpdateOne(context.Background(), bson.M{"_id": primitiveRenterId}, bson.M{"$set": updatedRenter})
