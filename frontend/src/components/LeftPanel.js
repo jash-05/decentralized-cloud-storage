@@ -45,6 +45,12 @@ const LeftPanel = ({ selectedTab, handleSelectedTab }) => {
         })
     }, [screenSize])
 
+    useEffect(() => {
+        if (!localStorage.getItem('renterId')) {
+            navigate('/')
+        }
+    }, [selectedTab])
+
     return (
         <div className='left-panel-wrapper'>
             <div>
@@ -53,23 +59,20 @@ const LeftPanel = ({ selectedTab, handleSelectedTab }) => {
 
             <div className='nav-buttons-wrapper'>
                 <div style={{ display: "flex", flexDirection: "column" }}>
-
-                    <Link to="/">
+                    {/* <Link to="/">
                         <Button style={CustomIconButton} icon={<HomeOutlinedIcon sx={CustomIconStyle} />} className='nav-button' text={screenSize.width <= 1200 ? '' : 'Home'} onClick={() => handleSelectedTab(0)} />
-                    </Link>
-                    <Link to="/dashboard">
+                    </Link> */}
+                    <Link to={`/dashboard/${renterId}`}>
                         <Button style={CustomIconButton} icon={<InsertChartOutlinedTwoToneIcon sx={CustomIconStyle} />} className='nav-button' text={screenSize.width <= 1215 ? '' : 'Dashboard'} onClick={() => handleSelectedTab(1)} />
                     </Link>
                     <Link to={`/buckets/renter/${renterId}`}>
                         <Button style={CustomIconButton} icon={<DeleteOutlineOutlinedIcon sx={CustomIconStyle} />} className='nav-button' text={screenSize.width <= 1200 ? '' : 'Buckets'} onClick={() => handleSelectedTab(2)} />
                     </Link>
-                    <Link to="/Profile">
+                    <Link to={`/Profile/${renterId}`}>
                         <Button style={CustomIconButton} icon={<PersonOutlineOutlinedIcon sx={CustomIconStyle} />} className='nav-button' text={screenSize.width <= 1200 ? '' : 'Profile'} onClick={() => handleSelectedTab(3)} />
                     </Link>
-
                 </div>
                 <div>
-
                     <Button style={CustomIconButton} icon={<LogoutOutlinedIcon sx={CustomIconStyle} />} className='nav-button' onClick={handleLogout} text={screenSize.width <= 1200 ? '' : 'Logout'} />
                 </div>
             </div>
