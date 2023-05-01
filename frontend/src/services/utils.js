@@ -17,9 +17,9 @@ const makeGetRequest = async (requestUrl, payload) => {
     }
 }
 
-const makePostRequest = async (requestUrl, payload) => {
+const makePostRequest = async (requestUrl, payload, params) => {
     try {
-        const { data } = await axios.post(requestUrl, payload)
+        const { data } = await axios.post(requestUrl, payload, { params: params})
         return data
     } catch (err) {
         printErrorMessage(err, requestUrl, 'POST')
@@ -47,19 +47,20 @@ const makeDeleteRequest = async (requestUrl, payload) => {
     }
 }
 
-export const makeAxiosRequest = async (method, backendName, routeGroup, routePath, payload) => {
+export const makeAxiosRequest = async (method, backendName, routeGroup, routePath, payload=null, params=null) => {
     const backendUrl = GET_BACKEND_URL(backendName)
     const requestUrl = backendUrl + routeGroup + '/' + routePath
 
     console.log(`Request URL: ${requestUrl}`)
     console.log(`Method: ${method}`)
     console.log(`Payload: ${JSON.stringify(payload)}`)
+    console.log(`Params: ${JSON.stringify(params)}`)
 
     switch (method) {
         case HTTP_METHODS.GET:
             return await makeGetRequest(requestUrl, payload)
         case HTTP_METHODS.POST:
-            return await makePostRequest(requestUrl, payload)
+            return await makePostRequest(requestUrl, payload, params)
         case HTTP_METHODS.PUT:
             return await makePutRequest(requestUrl, payload)
         case HTTP_METHODS.DELETE:

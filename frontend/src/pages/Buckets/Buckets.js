@@ -43,23 +43,17 @@ const Buckets = () => {
         event.preventDefault()
         console.log("Creating new bucket", bucketName, network, renterId)
         simpleToast("Creating new bucket", "loading", 1000)
+        let res;
         if (network === "web3") {
             const payload = { bucketName, renterId }
-            const res = await makeAxiosRequest(HTTP_METHODS.POST, BACKEND_NAMES.WEB3, ROUTE_GROUPS.BUCKET, ROUTE_PATHS.CREATE_BUCKET, payload)
-            console.log("Bucket created successfully", res)
-            setDataDependency(res)
-            simpleToast("Bucket created successfully", "success")
+            res = await makeAxiosRequest(HTTP_METHODS.POST, BACKEND_NAMES.WEB3, ROUTE_GROUPS.BUCKET, ROUTE_PATHS.CREATE_BUCKET, payload, null)
         } else {
-            try {
-                const res = await axios.post(`http://localhost:8080/storj/bucket/createBucket`, null, { params: { bucketName, renterId } })
-                console.log("Bucket created successfully", res.data)
-                setDataDependency(res.data)
-                simpleToast("Bucket created successfully", "success")
-            } catch (err) {
-                console.log("Error occured while creating bucket", err)
-                simpleToast("Error occured while creating bucket", "error")
-            }
+            const params = { bucketName, renterId }
+            res = await makeAxiosRequest(HTTP_METHODS.POST, BACKEND_NAMES.STORJ, ROUTE_GROUPS.BUCKET, ROUTE_PATHS.CREATE_BUCKET, null, params)
         }
+        console.log("Bucket created successfully", res)
+        setDataDependency(res)
+        simpleToast("Bucket created successfully", "success")
 
         handleClose()
     }
