@@ -13,7 +13,7 @@ import BasicTable from '../../components/BasicTable'
 import AddCircleOutlineOutlinedIcon from '@mui/icons-material/AddCircleOutlineOutlined';
 import axios from 'axios'
 import { makeAxiosRequest, simpleToast } from '../../services/utils'
-import { HTTP_METHODS } from '../../constants/constants'
+import { BACKEND_NAMES, HTTP_METHODS, ROUTE_GROUPS, ROUTE_PATHS } from '../../constants/constants'
 
 
 const Buckets = () => {
@@ -43,24 +43,23 @@ const Buckets = () => {
         event.preventDefault()
         console.log("Creating new bucket", bucketName, network, renterId)
         simpleToast("Creating new bucket", "loading", 1000)
-        // if (network === "web3") {
-        //     const payload = { bucketName, renterId }
-        //     const res = await makeAxiosRequest(HTTP_METHODS.POST, "web3", "bucket", "createBucket", payload)
-        //     console.log("Bucket created successfully", res)
-        //     setDataDependency(res)
-        //     simpleToast("Bucket created successfully", "success")
-        // }
-        // try {
-        //     const res = await axios.post(`http://localhost:8080/storj/bucket/createBucket`, null, { params: { bucketName, renterId } })
-        //     console.log("Bucket created successfully", res.data)
-        //     setDataDependency(res.data)
-        //     simpleToast("Bucket created successfully", "success")
-        // }
-
-        // catch (err) {
-        //     console.log("Error occured while creating bucket", err)
-        //     simpleToast("Error occured while creating bucket", "error")
-        // }
+        if (network === "web3") {
+            const payload = { bucketName, renterId }
+            const res = await makeAxiosRequest(HTTP_METHODS.POST, BACKEND_NAMES.WEB3, ROUTE_GROUPS.BUCKET, ROUTE_PATHS.CREATE_BUCKET, payload)
+            console.log("Bucket created successfully", res)
+            setDataDependency(res)
+            simpleToast("Bucket created successfully", "success")
+        } else {
+            try {
+                const res = await axios.post(`http://localhost:8080/storj/bucket/createBucket`, null, { params: { bucketName, renterId } })
+                console.log("Bucket created successfully", res.data)
+                setDataDependency(res.data)
+                simpleToast("Bucket created successfully", "success")
+            } catch (err) {
+                console.log("Error occured while creating bucket", err)
+                simpleToast("Error occured while creating bucket", "error")
+            }
+        }
 
         handleClose()
     }

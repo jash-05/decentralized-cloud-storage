@@ -8,11 +8,11 @@ const API_BACKEND = {
     },
     WEB3: {
         NAME: 'web3/',
-        PORT: '8081',
+        PORT: '8082',
     },
     MAIN: {
         NAME: '',
-        PORT: '8082',
+        PORT: '8081',
     }
 }
 
