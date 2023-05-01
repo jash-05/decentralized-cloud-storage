@@ -7,7 +7,7 @@ import MoreVertIcon from '@mui/icons-material/MoreVert';
 
 const ITEM_HEIGHT = 48;
 
-export default function OptionsMenu({ options, fileName, fileId }) {
+export default function OptionsMenu({ options, bucketId }) {
     const [anchorEl, setAnchorEl] = React.useState(null);
     const open = Boolean(anchorEl);
     const handleClick = (event) => {
@@ -46,7 +46,7 @@ export default function OptionsMenu({ options, fileName, fileId }) {
             >
                 {options?.map((option) => (
                     <MenuItem key={option.id} selected={option === 'Pyxis'} onClick={
-                        () => (option.handler)(fileId)}>
+                        () => (option.handler)(bucketId)}>
                         {option.name}
                     </MenuItem>
                 ))}
