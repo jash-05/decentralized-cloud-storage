@@ -31,10 +31,12 @@ type Bucket struct {
 }
 
 type NewRenterRequestBody struct {
-	FirstName string `json:"firstName"`
-	LastName  string `json:"lastName"`
-	Email     string `json:"email"`
-	Password  string `json:"password"`
+	FirstName string `bson:"firstName" json:"firstName"`
+	LastName  string `bson:"lastName" json:"lastName"`
+	Email     string `bson:"email" json:"email"`
+	Password  string `bson:"password" json:"password"`
+	Mobile    string `bson:"mobile" json:"mobile"`
+	Location  string `bson:"location" json:"location"`
 }
 
 type UpdateRenterRequestBody struct {
@@ -42,6 +44,9 @@ type UpdateRenterRequestBody struct {
 	FirstName string `json:"firstName"`
 	LastName  string `json:"lastName"`
 	Email     string `json:"email"`
+	Password  string `bson:"password" json:"password"`
+	Mobile    string `bson:"mobile" json:"mobile"`
+	Location  string `bson:"location" json:"location"`
 }
 
 type LoginRenterRequestBody struct {
