@@ -7731,6 +7731,14 @@ mainbackend/tmp/
 web3storage-backend/constants/
 web3storage-backend/go.sum
 web3storage-backend/tmp/
+<<<<<<< HEAD
+storj-backend/tmp/build-errors.log
+.gitignore
+storj-backend/tmp/main
+web3storage-backend/.DS_Store
+.gitignore
+.DS_Store
+=======
 <<<<<<< Updated upstream
 <<<<<<< Updated upstream
 <<<<<<< Updated upstream
@@ -7749,3 +7757,4 @@ storj-backend/tmp/build-errors.log
 storj-backend/go.mod
 .gitignore
 storj-backend/tmp/main
+>>>>>>> e90352721e64b7a74ca4f365ba55a50c44bba737
