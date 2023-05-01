@@ -13,3 +13,9 @@ mainbackend/tmp/
 web3storage-backend/constants/
 web3storage-backend/go.sum
 web3storage-backend/tmp/
+storj-backend/tmp/build-errors.log
+.gitignore
+storj-backend/tmp/main
+web3storage-backend/.DS_Store
+.gitignore
+.DS_Store
