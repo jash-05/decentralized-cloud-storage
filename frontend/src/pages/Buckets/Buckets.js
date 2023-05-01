@@ -25,7 +25,6 @@ const Buckets = () => {
     const CustomIconStyle = { height: "100%", verticalAlign: "-30%", marginRight: "5%" }
 
     const renterId = getCurrentUser()
-    // const renterId = localStorage.getItem("renterId")
     const [bucketName, setBucketName] = useState('')
     const [network, setNetwork] = useState('storj')
 
@@ -93,7 +92,6 @@ const Buckets = () => {
             const res = await axios.delete(`http://localhost:8080/storj/bucket/deleteBucket`, { params: { bucketId } })
 
             console.log("Bucket deleted successfully", res.data)
-            // setDataDependency(res.data)
 
         } catch (err) {
             console.error("Error occured while deleting bucket", err)
@@ -109,8 +107,6 @@ const Buckets = () => {
         try {
             const res = await axios.delete(`http://localhost:8080/storj/bucket/emptyBucket`, { params: { bucketId } })
             console.log("Bucket emptied successfully", res.data)
-            // setDataDependency(res.data)
-
         } catch (err) {
             console.error("Error occured while emptying bucket", err)
         }
@@ -133,12 +129,8 @@ const Buckets = () => {
     const [loading, setLoading] = useState(true)
 
     const fetchBucketsforRenter = async () => {
-        // const id = getCurrentUser()
-        // const data = await getBucketsforRenter(id)
-        // setBucketsData(data)
-        // const id = getCurrentUser()
-
-        const data = await getBucketsforRenter(renterId)
+        const id = getCurrentUser()
+        const data = await getBucketsforRenter(id)
         setBucketsData(data)
     }
 

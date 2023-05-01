@@ -1,11 +1,20 @@
-import React from 'react'
+import React, { useEffect } from 'react'
 import Button from './Button'
 import logo from '../assets/logo.png'
 import { useNavigate } from "react-router-dom";
+// import { checkIfUserLoggedIn } from '../services/utils';
 
 const Navbar = () => {
-
     const navigate = useNavigate();
+
+
+    useEffect(() => {
+        if (localStorage.getItem('renterId')) {
+            navigate('/dashboard')
+        }
+    }, [])
+
+
     const navigateToLogin = () => {
         navigate('/login')
     }

@@ -23,13 +23,16 @@ const Files = () => {
 
     const [backdropOpen, setBackdropOpen] = React.useState(false);
     // const [loading, setLoading] = useState(false);
-    const [files, setFiles] = useState();
+    const [files, setFiles] = useState(null);
     const location = useLocation();
     const [data, setData] = useState([])
     const bucketData = location.state?.payload;
 
     const handleFileChange = (e) => {
         console.log(e.target.files);
+        // let myFiles = Object.values(e.target.files)
+        // console.log("myFiles:  ", typeof (myFiles), myFiles);
+
         setFiles(e.target.files);
         if (e.target.files.length > 0) {
             handleClickOpen();
@@ -37,21 +40,18 @@ const Files = () => {
     };
 
     const handleFileUpload = async (event) => {
-
-        const files_array = Object.values(files);
-
-        console.log(files);
         event.preventDefault()
         const formData = new FormData();
-        formData.append("myFiles", files_array);
+        for (const [key, value] of Object.entries(files)) {
+            formData.append("myFiles", value);
+        }
         formData.append("bucketId", bucketData?.ID);
         console.log("formData", formData)
-        console.log("myFiles", files_array)
+        console.log("myFiles: ", files)
         console.log("bucketId", bucketData?.ID)
-        // simpleToast("Uploading File", "loading")
+        simpleToast("Uploading File", "loading")
         setOpen(false);
         setBackdropOpen(true)
-
 
         try {
             // const response = await axios.post("http://localhost:8080/storj/file/uploadFile", formData, { options })
@@ -80,24 +80,8 @@ const Files = () => {
         simpleToast("Downloading File", "loading", 2000)
         try {
 
-            // const res = await axios.get("http://localhost:8080/storj/file/downloadFile", { params: { fileName: fileName, bucketName: bucketName } })
-            // res.data().then(blob => {
-            axios({
-                url: `http://localhost:8080/storj/file/downloadFile`,
-                method: "GET",
-                // headers: headers,
-                params: { fileName: fileName, bucketName: bucketName },
-                responseType: "blob" // important
-            }).
-                then(blob => {
-                    let url = window.URL.createObjectURL(blob);
-                    let a = document.createElement('a');
-                    a.href = url;
-                    a.download = fileName;
-                    a.click();
-                })
-            // });
-
+            const res = await axios.get("http://localhost:8080/storj/file/downloadFile", { params: { fileName: fileName, bucketName: bucketName } })
+            console.log(res)
             simpleToast("File Downloaded Successfully", "success")
         }
         catch (error) {
