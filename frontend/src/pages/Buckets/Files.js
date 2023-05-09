@@ -6,7 +6,9 @@ import { useLocation } from "react-router-dom";
 import AlertDialogSlide from "../../components/SlideAlertDialog";
 import { makeAxiosRequest, simpleToast } from "../../services/utils";
 import { Backdrop } from "@mui/material";
-import CircularProgress from "@mui/material/CircularProgress";
+// import CircularProgress from "@mui/material/CircularProgress";
+import CircularProgress from '@mui/joy/CircularProgress';
+
 import {
 	BACKEND_NAMES,
 	BASE_IPFS_FILE_URL,
@@ -56,7 +58,7 @@ const Files = () => {
 		console.log("formData", formData);
 		console.log("myFiles: ", files);
 		console.log("bucketId", bucketData?.ID);
-		simpleToast("Uploading File", "loading");
+		simpleToast("Uploading File", "loading", 1000);
 		setOpen(false);
 		setBackdropOpen(true);
 
@@ -64,9 +66,8 @@ const Files = () => {
 			if (bucketData.StorageBackend === "web3") {
 				const response = await axios({
 					method: HTTP_METHODS.POST,
-					url: `${GET_BACKEND_URL(BACKEND_NAMES.WEB3)}${
-						ROUTE_GROUPS.FILE
-					}/${ROUTE_PATHS.UPLOAD_FILE}`,
+					url: `${GET_BACKEND_URL(BACKEND_NAMES.WEB3)}${ROUTE_GROUPS.FILE
+						}/${ROUTE_PATHS.UPLOAD_FILE}`,
 					data: formData,
 					headers: { "Content-Type": "multipart/form-data" },
 				});
@@ -125,10 +126,10 @@ const Files = () => {
 			try {
 				fetch(
 					"http://localhost:8080/storj/file/downloadFile?" +
-						new URLSearchParams({
-							fileName: fileName,
-							bucketName: bucketName,
-						}),
+					new URLSearchParams({
+						fileName: fileName,
+						bucketName: bucketName,
+					}),
 					{
 						method: "GET",
 					}
@@ -283,7 +284,7 @@ const Files = () => {
 			<div className="buckets-list-wrapper">
 				<BasicTable
 					page="file"
-					headers={["Name", "Size (in GB)", "Type"]}
+					headers={["Name", "Size (in GB)", "Type", 'Uploaded on']}
 					rowData={filteredData}
 					handleDownloadFile={handleDownloadFile}
 					handleDeleteFile={handleDeleteFile}
@@ -296,9 +297,10 @@ const Files = () => {
 					zIndex: (theme) => theme.zIndex.drawer + 10,
 				}}
 				open={backdropOpen}
-				// onClick={handleClose}
+			// onClick={handleClose}
 			>
-				<CircularProgress color="primary" />
+				<CircularProgress size="lg" />
+				{/* <CircularProgress color="primary" /> */}
 			</Backdrop>
 		</div>
 	);

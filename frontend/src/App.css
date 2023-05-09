@@ -169,7 +169,7 @@
   align-items: center;
   width: 85%;
   height: 100vh;
-  background-color: alicebl ue
+  background-color: aliceblue
 }
 
 .content-wrapper {
@@ -196,3 +196,16 @@
   background-color: aliceblue;
   cursor: pointer;
 }
+
+.MuiPaper-root {
+  border-radius: 200px;
+  background-color: black;
+}
+
+/* .paper-card{
+  border-radius: "20px";
+  box-shadow: "5px 5px 10px #70A1EB";
+  justify-content: "center";
+  display: "flex";
+  flex-direction: "column";
+} */

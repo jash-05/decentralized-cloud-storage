@@ -58,11 +58,11 @@ function App() {
               >
               </Route>
 
-              <Route
+              {/* <Route
                 path='/buckets/'
                 element={<Buckets />}
               >
-              </Route>
+              </Route> */}
 
               <Route
                 path='/buckets/renter/:renterId'

@@ -18,10 +18,10 @@ const Dashboard = () => {
 	return (
 
 		<div className="dashboard-wrapper">
-			<h1 className="dashboard-header">Welcome {userData ? userData?.firstName : "User"}!</h1>
+			<h1 style={{}} className="dashboard-header">Welcome {userData ? userData?.firstName : "User"}!</h1>
 			<Overview data={userData} />
 		</div>
 	);
 };
 
-export default Dashboard; 
+export default Dashboard;
