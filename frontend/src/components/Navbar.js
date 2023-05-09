@@ -10,7 +10,7 @@ const Navbar = () => {
 
     useEffect(() => {
         if (localStorage.getItem('renterId')) {
-            navigate('/dashboard')
+            navigate('/dashboard/' + localStorage.getItem('renterId'))
         }
     }, [])
 
