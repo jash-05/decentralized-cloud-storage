@@ -1,7 +1,6 @@
-
 .App {
   text-align: center;
-margin:0px;
+  margin: 0px;
 }
 
 
@@ -35,72 +34,75 @@ margin:0px;
   from {
     transform: rotate(0deg);
   }
+
   to {
     transform: rotate(360deg);
   }
 }
 
-.landing-page-wrapper{
+.landing-page-wrapper {
   display: flex;
   flex-direction: column;
   /* justify-content: center; */
-  padding-top: 10%;
+  padding-top: 5%;
   align-items: center;
   width: 100%;
   height: 100vh;
   background-color: #282c34;
 }
 
-.landing-page-wrapper .banner-heading{
+.landing-page-wrapper .banner-heading {
   font-size: 5rem;
   color: #ffffff;
   animation: slide 1s;
   animation-fill-mode: forwards;
 }
 
-.landing-page-wrapper h2{
+.landing-page-wrapper h2 {
   opacity: 0%;
-  animation: slide 1s;
+  animation: slide 5s;
   animation-delay: 0.25s;
   animation-fill-mode: forwards;
 }
 
 @keyframes slide {
-  0%{
+  0% {
     opacity: 0%;
     transform: translateX(0);
-}
-100%{
-  opacity: 100%;
+  }
+
+  100% {
+    opacity: 100%;
     transform: translateX(80px)
+  }
+
+
 }
 
-  
-}
-.banner-heading{
-  font-size:5rem
+.banner-heading {
+  font-size: 5rem
 }
 
-.display-wrapper{
-  display:flex;
-  justify-content:center;
-  align-items:center;
-  flex-wrap:wrap;
+.display-wrapper {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  flex-wrap: wrap;
   width: 100%;
 }
 
-.navbar-wrapper{
+.navbar-wrapper {
   display: flex;
   justify-content: space-between;
   width: 98%;
   padding: 20px 1%;
   box-shadow: 0px 10px 4px rgb(230, 216, 216);
-  background-image: linear-gradient( rgb(53, 53, 51),rgb(1, 1, 1));
+  background-image: linear-gradient(rgb(53, 53, 51), rgb(1, 1, 1));
 
 }
 
-.button{
-  height:40px;
+.button {
+  height: 40px;
   max-width: auto;
   width: auto;
   padding: 5px;
@@ -114,29 +116,34 @@ margin:0px;
 }
 
 
-.button:hover{
-  background-color: #70A1EB;
-  color: #ffffff;
-  cursor:pointer;
+.button:hover {
+  /* background-color: #70A1EB; */
+  background-color: #FFD817;
+  color: #020202;
+  cursor: pointer;
 }
 
-.starter-buttons{
+.starter-buttons {
   display: flex;
-  justify-content: space-between;
-  width: 12%;
+  /* justify-content: space-between; */
+  width: 15%;
   align-items: center;
 }
 
-.left-panel-wrapper{
+.starter-buttons button {
+  margin-left: 1rem;
+}
+
+.left-panel-wrapper {
   display: flex;
   flex-direction: column;
   width: 15%;
-  min-height:100vh ;
+  min-height: 100vh;
   background-color: #70A1EB;
   height: 100%;
 }
 
-.nav-buttons-wrapper{
+.nav-buttons-wrapper {
   display: flex;
   flex-direction: column;
   height: 90vh;
@@ -146,16 +153,17 @@ margin:0px;
   width: 80%;
 }
 
-.nav-buttons-wrapper button{
+.nav-buttons-wrapper button {
   margin-bottom: 10px;
   width: 100%;
 }
-.nav-button{
-  padding:10px;
+
+.nav-button {
+  padding: 10px;
   width: 100%;
 }
 
-.stage-wrapper{
+.stage-wrapper {
   display: flex;
   justify-content: center;
   align-items: center;
@@ -164,10 +172,40 @@ margin:0px;
   background-color: aliceblue
 }
 
-.content-wrapper{
+.content-wrapper {
   display: flex;
   justify-content: center;
   align-items: center;
   width: 100%;
   height: 100%;
 }
+
+.MuiTableCell-root>a {
+  text-decoration: none;
+  color: #000000;
+}
+
+.MuiTableCell-root:hover {
+  color: #0086e0;
+  font-weight: 600;
+  /* background-color: aliceblue; */
+}
+
+
+.MuiTableBody-root>.MuiTableRow-root:hover {
+  background-color: aliceblue;
+  cursor: pointer;
+}
+
+.MuiPaper-root {
+  border-radius: 200px;
+  background-color: black;
+}
+
+/* .paper-card{
+  border-radius: "20px";
+  box-shadow: "5px 5px 10px #70A1EB";
+  justify-content: "center";
+  display: "flex";
+  flex-direction: "column";
+} */

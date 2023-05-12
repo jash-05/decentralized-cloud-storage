@@ -1,18 +1,16 @@
 import './App.css';
 import { useState } from 'react';
 import { Route, Routes, useLocation } from 'react-router-dom';
+import { Toaster } from 'react-hot-toast';
 import Home from './pages/Home/Home';
 import Dashboard from './pages/Dashboard/Dashboard';
 import Buckets from './pages/Buckets/Buckets';
 import Profile from './pages/Profile/Profile';
-import VerticalTabs from './components/VerticalTabs';
 import Navbar from './components/Navbar';
-import ResponsiveDrawer from './components/ResponsiveDrawer';
 import LeftPanel from './components/LeftPanel';
 import Files from './pages/Buckets/Files';
 import Login from './pages/Login/Login';
-
-// import { useHistory } from 'react-router-dom';
+import Register from './pages/Login/Register';
 
 function App() {
 
@@ -26,10 +24,6 @@ function App() {
 
   return (
     <div className="App">
-      {/* <VerticalTabs /> */}
-      {/* <ResponsiveDrawer /> */}
-
-
       {location.pathname === '/'
         &&
         <Navbar />
@@ -45,10 +39,12 @@ function App() {
           element={<Login />}
         >
         </Route>
+        <Route
+          path='/register'
+          element={<Register />}
+        >
+        </Route>
       </Routes>
-
-
-      {/* <Stage selectedTab /> */}
 
       {!['/', '/login', '/register'].includes(location.pathname) &&
         <div className="content-wrapper">
@@ -57,16 +53,16 @@ function App() {
             <Routes>
 
               <Route
-                path='/dashboard/'
+                path='/dashboard/:renterId'
                 element={<Dashboard />}
               >
               </Route>
 
-              <Route
+              {/* <Route
                 path='/buckets/'
                 element={<Buckets />}
               >
-              </Route>
+              </Route> */}
 
               <Route
                 path='/buckets/renter/:renterId'
@@ -82,7 +78,7 @@ function App() {
 
 
               <Route
-                path='/profile/'
+                path='/profile/:renterId'
                 element={<Profile />}
               >
               </Route>
@@ -91,6 +87,7 @@ function App() {
           </div>
         </div>
       }
+      <Toaster />
     </div >
   );
 }

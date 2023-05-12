@@ -36,12 +36,13 @@ func CreateBucket(c *gin.Context) {
 	}
 
 	bucketPayload := models.Bucket{
-		ID:             primitive.NewObjectID(),
-		BucketName:     newBucket.BucketName,
-		RenterId:       primitiveRenterId,
-		CreationTime:   time.Now(),
-		StorageBackend: constants.WEB3_BACKEND,
-		Files:          make([]models.File, 0),
+		ID:              primitive.NewObjectID(),
+		BucketName:      newBucket.BucketName,
+		BucketNameAlias: newBucket.BucketName,
+		RenterId:        primitiveRenterId,
+		CreationTime:    time.Now(),
+		StorageBackend:  constants.WEB3_BACKEND,
+		Files:           make([]models.File, 0),
 	}
 
 	wc := writeconcern.New(writeconcern.WMajority())
@@ -104,7 +105,7 @@ func GetFilesForBucket(c *gin.Context) {
 		return
 	}
 
-	c.IndentedJSON(http.StatusOK, gin.H{"files": bucket.Files})
+	c.IndentedJSON(http.StatusOK, bucket.Files)
 }
 
 func GetBucketsForRenter(c *gin.Context) {

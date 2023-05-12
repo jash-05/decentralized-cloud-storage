@@ -10,13 +10,16 @@ import moment from 'moment';
 // import { Link } from '@mui/material';
 import { NavLink } from 'react-router-dom';
 import OptionsMenu from './Options';
+import { IconButton, Tooltip } from '@mui/material';
+import FileDownloadIcon from '@mui/icons-material/FileDownload';
+import DeleteIcon from '@mui/icons-material/Delete';
+import ClearIcon from '@mui/icons-material/Clear';
 
 
-export default function BasicTable({ headers, rowData, page, options }) {
-
+export default function BasicTable({ headers, rowData, page, options, handleDeleteFile, handleDownloadFile, storageBackend }) {
 
     return (
-        <TableContainer component={Paper} style={{ overflowY: "scroll", height: "70vh" }} >
+        <TableContainer component={Paper} style={{ borderRadius: "10px", overflowY: "scroll", height: "70vh" }} >
             <Table sx={{ minWidth: 650 }} aria-label="simple table">
                 <TableHead>
                     <TableRow>
@@ -26,6 +29,7 @@ export default function BasicTable({ headers, rowData, page, options }) {
                             ))
 
                         }
+                        <TableCell></TableCell>
                     </TableRow>
                 </TableHead>
                 <TableBody>
@@ -46,11 +50,35 @@ export default function BasicTable({ headers, rowData, page, options }) {
                                             {row?.BucketNameAlias}
                                         </NavLink>
                                     </TableCell>
-                                    {row?.StorageBackend == "web3" ? <TableCell sx={{ backgroundColor: "orange" }} align="right"><span>{(row?.StorageBackend)?.toUpperCase()}</span>
+                                    {row?.StorageBackend == "web3" ? <TableCell sx={{ backgroundColor: "#FFD817", fontWeight: "600" }} align="center"><span>{(row?.StorageBackend)?.toUpperCase()}</span>
                                     </TableCell> :
-                                        <TableCell sx={{ backgroundColor: "#70A1EB" }} align="right"><span>{(row.StorageBackend)?.toUpperCase()}</span></TableCell>}
-                                    <TableCell align="right">{row?.Files ? row.Files.length : 0}</TableCell>
-                                    <TableCell align="right">{moment.utc(row?.CreationTime).format('YYYY-MM-DD HH:mm:ss')}</TableCell>
+                                        <TableCell sx={{ backgroundColor: "#70A1EB", fontWeight: "600" }} align="center"><span>{(row.StorageBackend)?.toUpperCase()}</span></TableCell>}
+                                    <TableCell align="center">{row?.Files ? row.Files.length : 0}</TableCell>
+                                    <TableCell align="center">{moment(row?.CreationTime).format('LLL')}</TableCell>
+                                    <OptionsMenu options={options} bucketId={row?.ID} StorageBackend={row?.StorageBackend} />
+
+                                    {/* <Tooltip title="Delete">
+                                        <IconButton>
+                                            <DeleteIcon sx={{
+                                                ":hover": {
+                                                    color: "red"
+                                                },
+                                                color: "black"
+                                            }} tooltip='delete'
+                                                onClick={() => (handleDeleteBucket)(row?.ID)} />
+                                        </IconButton>
+                                    </Tooltip>
+                                    <Tooltip title="Empty">
+                                        <IconButton>
+                                            <ClearIcon sx={{
+                                                ":hover": {
+                                                    color: "red"
+                                                },
+                                                color: "black"
+                                            }} tooltip='empty'
+                                                onClick={() => (handleEmptyBucket)(row?.ID)} />
+                                        </IconButton>
+                                    </Tooltip> */}
                                 </TableRow>
                             ))
 
@@ -66,12 +94,37 @@ export default function BasicTable({ headers, rowData, page, options }) {
                                     </TableCell>
                                     <TableCell align="left">{(row?.SizeInGB).toFixed(5)}</TableCell>
                                     <TableCell align="left">{row?.Type}</TableCell>
-                                    <OptionsMenu options={options} fileName={row?.Name} />
+                                    <TableCell align="left">{moment(row?.CreationTime).format('LLL')}</TableCell>
+
+                                    {/* <OptionsMenu options={options} fileName={row?.Name} fileId={row?.ID} /> */}
+                                    <TableCell sx={{ width: "100px" }} >
+                                        <Tooltip title="Download">
+
+                                            <IconButton>
+                                                <FileDownloadIcon sx={{
+                                                    ":hover": {
+                                                        color: "#2196f3"
+                                                    },
+                                                    color: "black"
+                                                }} onClick={
+                                                    () => (handleDownloadFile)(storageBackend, row?.Cid, row?.Name)} />
+                                            </IconButton>
+                                        </Tooltip>
+                                        <Tooltip title="Delete">
+                                            <IconButton>
+                                                <DeleteIcon sx={{
+                                                    ":hover": {
+                                                        color: "red"
+                                                    },
+                                                    color: "black"
+                                                }} tooltip='delete' onClick={
+                                                    () => (handleDeleteFile)(storageBackend, row?.ID)} />
+                                            </IconButton>
+                                        </Tooltip>
+                                    </TableCell>
                                 </TableRow>
                             ))
-
                     }
-
                 </TableBody>
             </Table>
         </TableContainer >

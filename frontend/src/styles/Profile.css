@@ -1,0 +1,12 @@
+.horizontal-field-group-wrapper {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    margin-bottom: 10px;
+    min-width: 1000px;
+}
+
+.horizontal-field-group-wrapper>* {
+    margin-right: 1rem;
+
+}

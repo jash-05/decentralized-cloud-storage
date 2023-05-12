@@ -444,7 +444,7 @@ func DeleteBucket(w http.ResponseWriter, r *http.Request) {
 		}
 
 		// Remove bucketId from renter's buckets array
-		renterDocumentUpdate1Result, err := renterCollection.UpdateByID(sessionContext, renterId, bson.M{"$pull": bson.M{"buckets": bson.M{"_id": bucketIdObjectId}}})
+		renterDocumentUpdate1Result, err := renterCollection.UpdateByID(sessionContext, renterId, bson.M{"$pull": bson.M{"buckets": bucketIdObjectId}})
 		if err != nil {
 			return nil, fmt.Errorf("error removing bucket from renter document: %v", err)
 		}

@@ -6,8 +6,10 @@ require github.com/web3-storage/go-w3s-client v0.0.7
 
 require (
 	example.com/mainbackend v0.0.0-00010101000000-000000000000
+	github.com/gin-contrib/cors v1.4.0
 	github.com/gin-gonic/gin v1.9.0
 	github.com/ipfs/go-cid v0.4.0
+	github.com/rs/cors v1.8.2
 )
 
 require (

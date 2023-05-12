@@ -1,11 +1,20 @@
-import React from 'react'
+import React, { useEffect } from 'react'
 import Button from './Button'
 import logo from '../assets/logo.png'
 import { useNavigate } from "react-router-dom";
+// import { checkIfUserLoggedIn } from '../services/utils';
 
 const Navbar = () => {
-
     const navigate = useNavigate();
+
+
+    useEffect(() => {
+        if (localStorage.getItem('renterId')) {
+            navigate('/dashboard/' + localStorage.getItem('renterId'))
+        }
+    }, [])
+
+
     const navigateToLogin = () => {
         navigate('/login')
     }
@@ -20,8 +29,8 @@ const Navbar = () => {
                 <h1 style={{ color: "white" }}>FileStore</h1>
             </div>
             <div className="starter-buttons">
-                <Button onClick={navigateToLogin} text="Login" style={{ backgroundColor: "orange" }} ></Button>
-                <Button onClick={navigateToSignup} text="Try for free" style={{ backgroundColor: "#70A1EB" }} />
+                <Button onClick={navigateToLogin} text="Login" style={{ backgroundColor: "#FFD817" }} ></Button>
+                <Button onClick={navigateToSignup} text="Register" style={{ backgroundColor: "#70A1EB" }} />
             </div>
         </div >
     )

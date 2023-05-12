@@ -13,23 +13,63 @@ import Typography from '@mui/material/Typography';
 import Container from '@mui/material/Container';
 import { createTheme, rgbToHex, ThemeProvider } from '@mui/material/styles';
 import logo from '../../assets/logo.png'
+import axios from 'axios';
+import { useNavigate } from 'react-router-dom';
+import { simpleToast } from '../../services/utils';
+import { BACKEND_NAMES, HTTP_METHODS, ROUTE_GROUPS, ROUTE_PATHS } from '../../constants/constants';
+import { makeAxiosRequest } from '../../services/utils';
 
 const theme = createTheme();
 
 export default function Login() {
-  const handleSubmit = (event) => {
+
+  const navigate = useNavigate();
+
+  const handleSubmit = async (event) => {
     event.preventDefault();
     const data = new FormData(event.currentTarget);
-    console.log({
+    const payload = {
       email: data.get('email'),
       password: data.get('password'),
-    });
+    }
+
+    try {
+      const res = await axios.post('http://localhost:8081/renter/login', payload)
+      console.log("login successful", res.data)
+      localStorage.setItem('renterId', res?.data?.renterId)
+      simpleToast("Login Successful", "success")
+      navigate(`/dashboard/${res?.data?.renterId}`)
+    } catch (err) {
+      simpleToast("Failed to login!", "error")
+      console.error(err)
+    }
+    // });
+    // const payload = {
+    //     email: data.get("email"),
+    //     password: data.get("password")
+    // }
+    // const response = await makeAxiosRequest(
+    //     HTTP_METHODS.POST,
+    //     BACKEND_NAMES.MAIN,
+    //     ROUTE_GROUPS.RENTER,
+    //     ROUTE_PATHS.LOGIN,
+    //     payload
+    // )
+    // console.log(response)
+    // // try {
+    // //     const response = await axios.post('http://localhost:8082/renter/login', payload)
+    // // console.log(response)
+    // // } catch (err) {
+    // //     console.log(err)
+    // // }
+    
+    
   };
 
   return (
     <div className='landing-page-wrapper'>
       <ThemeProvider theme={theme}>
-        <Container component="main" maxWidth="md" sx={{ minHeight: "600px", }}>
+        <Container component="main" maxWidth="sm" sx={{ minHeight: "600px", }}>
           <CssBaseline />
           <Box
             sx={{
@@ -41,46 +81,49 @@ export default function Login() {
               minHeight: "600px",
               borderRadius: "20px",
               paddingTop: "10%",
-
-
             }}
           >
-            {/* <Avatar sx={{ m: 1, bgcolor: 'secondary.main' }}> */}
-            {/* <LockOutlinedIcon /> */}
-            <img style={{ maxHeight: "80px", minHeight: "80px" }} src={logo} alt="logo" />
-            {/* </Avatar> */}
+            {/* <Avatar sx={{ m: 1, bgcolor: 'secondary.main' }}>
+              <LockOutlinedIcon />
+            </Avatar> */}
 
+            <img style={{ maxHeight: "80px", minHeight: "80px" }} src={logo} alt="logo" />
             <br />
             <Typography component="h1" variant="h5">
               <b>
                 Login
               </b>
             </Typography>
-            <Box component="form" onSubmit={handleSubmit} noValidate sx={{ mt: 1 }}>
-              <TextField
-                margin="normal"
-                required
-                fullWidth
-                id="email"
-                label="Email Address"
-                name="email"
-                autoComplete="email"
-                autoFocus
-              />
-              <TextField
-                margin="normal"
-                required
-                fullWidth
-                name="password"
-                label="Password"
-                type="password"
-                id="password"
-                autoComplete="current-password"
-              />
-              <FormControlLabel
-                control={<Checkbox value="remember" color="primary" />}
-                label="Remember me"
-              />
+            <Box component="form" onSubmit={handleSubmit} sx={{ mt: 1 }}>
+              <Grid>
+                <Grid item xs={7}>
+                  <TextField
+                    margin="normal"
+                    required
+                    fullWidth
+                    id="email"
+                    label="Email Address"
+                    name="email"
+                    autoComplete="email"
+                    type="email"
+                    autoFocus
+                  />
+                </Grid>
+              </Grid>
+              <Grid>
+                <Grid item xs={7}>
+                  <TextField
+                    margin="normal"
+                    required
+                    fullWidth
+                    name="password"
+                    label="Password"
+                    type="password"
+                    id="password"
+                    autoComplete="current-password"
+                  />
+                </Grid>
+              </Grid>
               <Button
                 type="submit"
                 fullWidth
@@ -89,18 +132,9 @@ export default function Login() {
               >
                 Login
               </Button>
-              <Grid container>
-                {/* <Grid item xs>
-                <Link href="#" variant="body2">
-                  Forgot password?
-                </Link>
-              </Grid> */}
-                <Grid item>
-                  <Link href="#" variant="body2">
-                    {"Don't have an account? Register"}
-                  </Link>
-                </Grid>
-              </Grid>
+              <Link href="/register" variant="body2">
+                {"Don't have an account? Register"}
+              </Link>
             </Box>
           </Box>
         </Container>

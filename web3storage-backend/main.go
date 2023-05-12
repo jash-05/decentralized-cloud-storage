@@ -7,18 +7,19 @@ import (
 	"fmt"
 
 	"example.com/mainbackend/db/config"
+	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
 )
 
-// func getFiles(ctx context.Context, c w3s.Client, stringCid string) []string {
-// 	cid, _ := cid.Parse(stringCid)
+//  func getFiles(ctx context.Context, c w3s.Client, stringCid string) []string {
+//  	cid, _ := cid.Parse(stringCid)
 
-// 	res, err := c.Get(ctx, cid)
-// 	if err != nil {
-// 		panic(err)
-// 	}
+//  	res, err := c.Get(ctx, cid)
+//  	if err != nil {
+//  		panic(err)
+//  	}
 
-// 	f, fsys, err := res.Files()
+//  	f, fsys, err := res.Files()
 // 	if err != nil {
 // 		panic(err)
 // 	}
@@ -54,20 +55,19 @@ import (
 
 func main() {
 	router := gin.Default()
+	router.Use(cors.Default())
 	web3Routes := router.Group("web3")
 	fileroutes.Routes(web3Routes)
 	bucketroutes.Routes(web3Routes)
-	router.Run("localhost:8080")
+	router.Run("localhost:8082")
 
 	err := config.DB.Ping(context.TODO(), nil)
 	if err != nil {
 		fmt.Println("Error pinging to MongoDB: ", err)
 		panic(err)
 	} else {
-		fmt.Println("Pinged Mongo Successfullyy!")	
+		fmt.Println("Pinged Mongo Successfullyy!")
 	}
-
-
 
 	// c, err := w3s.NewClient(w3s.WithToken(mytoken))
 	// if err != nil {
@@ -86,5 +86,3 @@ func main() {
 	// fmt.Printf("The locations of files are: %v\n", fileUrlsForCid)
 
 }
-
-

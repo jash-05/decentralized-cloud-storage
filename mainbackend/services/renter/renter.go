@@ -53,8 +53,10 @@ func Register(c *gin.Context) {
 		FirstName: newRenter.FirstName,
 		LastName:  newRenter.LastName,
 		Username:  utils.GenerateRandomCharsetId(),
-		Email:     newRenter.Email,
+		Email:     newRenter.Email,	
 		Password:  passwordHash,
+		Mobile:    newRenter.Mobile,
+		Location:  newRenter.Location,
 		Buckets:   make([]primitive.ObjectID, 0),
 	}
 
@@ -81,7 +83,7 @@ func Login(c *gin.Context) {
 	err := renterCollection.FindOne(c, bson.M{"email": loginRenter.Email}).Decode(&renterDocument)
 	if err != nil {
 		if err == mongo.ErrNoDocuments {
-			c.JSON(http.StatusNotFound, gin.H{"message": "No user exists with the given email"})
+			c.JSON(http.StatusBadRequest, gin.H{"message": "No user exists with the given email"})
 			return
 		}
 		c.JSON(http.StatusInternalServerError, gin.H{"message": err.Error()})
@@ -94,7 +96,7 @@ func Login(c *gin.Context) {
 		return
 	}
 
-	c.IndentedJSON(http.StatusFound, gin.H{"renterId": renterDocument.ID})
+	c.IndentedJSON(http.StatusOK, gin.H{"renterId": renterDocument.ID})
 }
 
 // function to update user profile
@@ -129,7 +131,14 @@ func UpdateProfile(c *gin.Context) {
 		}
 	}
 
-	updatedRenter := bson.M{"firstName": newRenter.FirstName, "lastName": newRenter.LastName, "email": newRenter.Email}
+	updatedRenter := bson.M{
+		"firstName": newRenter.FirstName,
+		 "lastName": newRenter.LastName, 
+		 "email": newRenter.Email, 
+		//  "password": newRenter.Password,
+		"mobile": newRenter.Mobile,
+		"location": newRenter.Location,
+	}
 
 	result, err := renterCollection.UpdateOne(context.Background(), bson.M{"_id": primitiveRenterId}, bson.M{"$set": updatedRenter})
 	if err != nil {
