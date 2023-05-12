@@ -16,13 +16,14 @@ type File struct {
 }
 
 type Bucket struct {
-	ID              primitive.ObjectID `bson:"_id,omitempty"`
-	BucketName      string             `bson:"bucketName"`
-	BucketNameAlias string             `bson:"bucketNameAlias"`
-	RenterId        primitive.ObjectID `bson:"renterId"`
-	CreationTime    time.Time          `bson:"creationTime"`
-	StorageBackend  string             `bson:"storageBackend"`
-	Files           []File             `bson:"files"`
+	ID               primitive.ObjectID `bson:"_id,omitempty"`
+	BucketName       string             `bson:"bucketName"`
+	BucketNameAlias  string             `bson:"bucketNameAlias"`
+	RenterId         primitive.ObjectID `bson:"renterId"`
+	CreationTime     time.Time          `bson:"creationTime"`
+	StorageBackend   string             `bson:"storageBackend"`
+	TotalStorageUsed float64            `bson:"totalStorageUsed"`
+	Files            []File             `bson:"files"`
 }
 
 type Renter struct {
@@ -38,4 +39,21 @@ type Renter struct {
 	TotalNumberOfFiles int                  `bson:"totalNumberOfFiles"`
 	TotalBandwidth     float64              `bson:"totalBandwidth"`
 	TotalStorageUsed   float64              `bson:"totalStorageUsed"`
+}
+
+type DailyStorageTrend struct {
+	Day       time.Time `bson:"day"`
+	ValueInGB float64   `bson:"valueInGB"`
+}
+
+type DailyBandwidthTrend struct {
+	Day       time.Time `bson:"day"`
+	ValueInGB float64   `bson:"valueInGB"`
+}
+
+type RenterMetrics struct {
+	ID                   primitive.ObjectID  `bson:"_id,omitempty"`
+	RenterId             primitive.ObjectID  `bson:"renterID"`
+	DailyStorageTrends   []DailyStorageTrend `bson:"dailyStorageTrends"`
+	DailyBandwidthTrends []DailyStorageTrend `bson:"dailyBandwidthTrends"`
 }

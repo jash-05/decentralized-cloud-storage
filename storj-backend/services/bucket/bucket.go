@@ -79,7 +79,7 @@ func CreateBucket(w http.ResponseWriter, r *http.Request) {
 
 	bucketCollection := config.GetCollection(config.DB, "buckets")
 
-	bucketObj := models.Bucket{BucketName: bucketNameOnStorj, BucketNameAlias: originalBucketName, RenterId: renterIdObjectId, CreationTime: time.Now(), StorageBackend: constants.STORJ_STORAGE_BACKEND, Files: []models.File{}}
+	bucketObj := models.Bucket{BucketName: bucketNameOnStorj, BucketNameAlias: originalBucketName, RenterId: renterIdObjectId, CreationTime: time.Now(), StorageBackend: constants.STORJ_STORAGE_BACKEND, TotalStorageUsed: float64(0), Files: []models.File{}}
 
 	session, err := config.DB.StartSession()
 	if err != nil {
@@ -274,7 +274,9 @@ func EmptyBucket(w http.ResponseWriter, r *http.Request) {
 
 	renterCollection := config.GetCollection(config.DB, "renters")
 	bucketCollection := config.GetCollection(config.DB, "buckets")
+
 	bucket := models.Bucket{}
+
 	bucketFilter := bson.D{{Key: "_id", Value: bucketIdObjectId}}
 	bucketObject := bucketCollection.FindOne(context.TODO(), bucketFilter)
 	err = bucketObject.Decode(&bucket)
@@ -285,6 +287,7 @@ func EmptyBucket(w http.ResponseWriter, r *http.Request) {
 	}
 
 	bucketName := bucket.BucketName
+	bucketSize := bucket.TotalStorageUsed
 	renterId := bucket.RenterId
 	totalFilesInBucket := len(bucket.Files)
 	filesInsideBucket := bucket.Files
@@ -326,22 +329,20 @@ func EmptyBucket(w http.ResponseWriter, r *http.Request) {
 
 			// FIXME: Uncomment this and use it if the goroutine errors can not be handled.
 			// err = emptyBucketStorjHelper(sessionContext, access, bucketName, filesInsideBucket[i].Name)
-			if err != nil {
-				return nil, fmt.Errorf("error deleting file from storj: %v", err)
-			}
+			// if err != nil {
+			// 	return nil, fmt.Errorf("error deleting file from storj: %v", err)
+			// }
 		}
 
 		renterDocumentUpdateResult, err := renterCollection.UpdateOne(
 			sessionContext,
 			bson.M{"_id": renterId},
-			bson.M{"$inc": bson.M{"totalNumberOfFiles": -totalFilesInBucket}},
+			bson.M{"$inc": bson.M{"totalNumberOfFiles": -totalFilesInBucket, "totalStorageUsed": -bucketSize}},
 		)
 		if err != nil {
 			return nil, fmt.Errorf("error reducing bucket and file count from renter document: %v", err)
 		}
 		fmt.Println("Reduced bucket and file count from renter document, successful modified count: ", renterDocumentUpdateResult)
-
-		// TODO: Reduce total storage from renter's total storage, need to maintain total storage in bucket document for this.
 
 		return nil, nil
 	}
@@ -404,6 +405,7 @@ func DeleteBucket(w http.ResponseWriter, r *http.Request) {
 	}
 
 	bucketName := bucket.BucketName
+	bucketSize := bucket.TotalStorageUsed
 	renterId := bucket.RenterId
 	totalFilesInBucket := len(bucket.Files)
 	bucketDeleteFilter := bson.D{{Key: "_id", Value: bucketIdObjectId}}
@@ -452,14 +454,13 @@ func DeleteBucket(w http.ResponseWriter, r *http.Request) {
 		renterDocumentUpdate2Result, err := renterCollection.UpdateOne(
 			sessionContext,
 			bson.M{"_id": renterId},
-			bson.M{"$inc": bson.M{"totalBuckets": -1, "totalNumberOfFiles": -totalFilesInBucket}},
+			bson.M{"$inc": bson.M{"totalBuckets": -1, "totalNumberOfFiles": -totalFilesInBucket, "totalStorageUsed": -bucketSize}},
 		)
 		if err != nil {
 			return nil, fmt.Errorf("error reducing bucket and file count from renter document: %v", err)
 		}
 		fmt.Println("Reduced bucket and file count from renter document, successful modified count: ", renterDocumentUpdate2Result)
 
-		// TODO: Reduce total storage from renter's total storage, need to maintain total storage in bucket document for this.
 		return nil, nil
 	}
 
