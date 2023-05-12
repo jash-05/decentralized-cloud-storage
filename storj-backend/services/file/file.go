@@ -160,6 +160,17 @@ func UploadFile(w http.ResponseWriter, r *http.Request) {
 			fmt.Println("File upload added to bucket document collection successfully, modified count: ", bucketDocumentUpdateResult.ModifiedCount)
 		}
 
+		// Update total files size in bucket collection
+		bucketDocumentUpdateResult, err := bucketCollection.UpdateOne(
+			sessionContext,
+			bson.M{"_id": bucketId},
+			bson.M{"$inc": bson.M{"totalStorageUsed": totalFilesSize}},
+		)
+		if err != nil {
+			return nil, fmt.Errorf("error adding file metrics to bucket collection: %v", err)
+		}
+		fmt.Println("File size metrics added to bucket collection successfully, modified count: ", bucketDocumentUpdateResult.ModifiedCount)
+
 		// Update file metrics to renter collection
 		renterDocumentUpdateResult, err := renterCollection.UpdateOne(
 			sessionContext,
@@ -181,12 +192,13 @@ func UploadFile(w http.ResponseWriter, r *http.Request) {
 		for fileName := range fileMapBytes {
 			// Create new file on Storj
 			fileBytes := fileMapBytes[fileName]
-			// go uploadFileStorjHelper(context.Background(), access, bucket.BucketName, fileName, fileBytes)
-			err = uploadFileStorjHelper(context.Background(), access, bucket.BucketName, fileName, fileBytes)
+			go uploadFileStorjHelper(context.Background(), access, bucket.BucketName, fileName, fileBytes)
 
-			if err != nil {
-				return nil, fmt.Errorf("error uploading file on storj: %v", err)
-			}
+			// err = uploadFileStorjHelper(context.Background(), access, bucket.BucketName, fileName, fileBytes)
+
+			// if err != nil {
+			// 	return nil, fmt.Errorf("error uploading file on storj: %v", err)
+			// }
 		}
 
 		bucket := models.Bucket{}
@@ -319,7 +331,6 @@ func DeleteFile(w http.ResponseWriter, r *http.Request) {
 	bucketId, _ := primitive.ObjectIDFromHex(r.Form.Get("bucketId"))
 
 	bucket := models.Bucket{}
-	file := models.File{}
 
 	bucketCollection := config.GetCollection(config.DB, "buckets")
 	renterCollection := config.GetCollection(config.DB, "renters")
@@ -333,22 +344,25 @@ func DeleteFile(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	var getFilenameFromFilesSlice = func(filesInsideBucket []models.File) string {
-		var matchedFileName = ""
+	var getFilenameFromFilesSlice = func(filesInsideBucket []models.File) models.File {
+		var matchedFile = models.File{}
 		for i := 0; i < len(filesInsideBucket); i++ {
 			if filesInsideBucket[i].ID == fileId {
-				matchedFileName := filesInsideBucket[i].Name
-				return matchedFileName
+				matchedFile = filesInsideBucket[i]
+				break
 			}
 		}
-		return matchedFileName
+		return matchedFile
 	}
 
 	fmt.Println("Bucket name: ", bucket.BucketName)
 	fmt.Println("Renter ID: ", bucket.RenterId)
 
-	fileName := getFilenameFromFilesSlice(bucket.Files)
+	file := getFilenameFromFilesSlice(bucket.Files)
+	fileName := file.Name
 	fmt.Println("File name: ", fileName)
+	fileSize := file.SizeInGB
+	fmt.Println("File size: ", fileSize)
 
 	wc := writeconcern.New(writeconcern.WMajority())
 	rc := readconcern.Snapshot()
@@ -366,7 +380,7 @@ func DeleteFile(w http.ResponseWriter, r *http.Request) {
 	// Transaction
 	callback := func(sessionContext mongo.SessionContext) (interface{}, error) {
 		// Delete file from bucket document
-		bucketDocumentUpdateResult, err := bucketCollection.UpdateByID(sessionContext, bucketId, bson.M{"$pull": bson.M{"files": bson.M{"_id": fileId}}})
+		bucketDocumentUpdateResult, err := bucketCollection.UpdateByID(sessionContext, bucketId, bson.M{"$pull": bson.M{"files": bson.M{"_id": fileId}}, "$inc": bson.M{"totalStorageUsed": -fileSize}})
 		if err != nil {
 			return nil, fmt.Errorf("error deleting file from bucket in bucket collection: %v", err)
 		}
@@ -376,7 +390,7 @@ func DeleteFile(w http.ResponseWriter, r *http.Request) {
 		renterDocumentUpdateResult, err := renterCollection.UpdateOne(
 			sessionContext,
 			bson.M{"_id": bucket.RenterId},
-			bson.M{"$inc": bson.M{"totalStorageUsed": -file.SizeInGB, "totalNumberOfFiles": -1}},
+			bson.M{"$inc": bson.M{"totalStorageUsed": -fileSize, "totalNumberOfFiles": -1}},
 		)
 		if err != nil {
 			return nil, fmt.Errorf("error deleting file metrics from renter collection: %v", err)
