@@ -15,6 +15,11 @@ type File struct {
 	Type           string             `bson:"type"`
 }
 
+type NewBucketRequestBody struct {
+	BucketName string `json:"bucketName"`
+	RenterId   string `json:"renterId"`
+}
+
 type Bucket struct {
 	ID               primitive.ObjectID `bson:"_id,omitempty"`
 	BucketName       string             `bson:"bucketName" json:"bucketName"`
@@ -27,12 +32,13 @@ type Bucket struct {
 }
 
 type NewRenterRequestBody struct {
-	FirstName string `bson:"firstName" json:"firstName"`
-	LastName  string `bson:"lastName" json:"lastName"`
-	Email     string `bson:"email" json:"email"`
-	Password  string `bson:"password" json:"password"`
-	Mobile    string `bson:"mobile" json:"mobile"`
-	Location  string `bson:"location" json:"location"`
+	FirstName string `json:"firstName"`
+	LastName  string `json:"lastName"`
+	Email     string `json:"email"`
+	Password  string `json:"password"`
+	// Password  string `bson:"password" json:"password"`
+	Mobile   string `bson:"mobile" json:"mobile"`
+	Location string `bson:"location" json:"location"`
 }
 
 type UpdateRenterRequestBody struct {
@@ -51,19 +57,29 @@ type LoginRenterRequestBody struct {
 }
 
 type Renter struct {
-	ID                 primitive.ObjectID   `bson:"_id,omitempty"`
-	Name               string               `bson:"name"`
-	Username           string               `bson:"username"`
-	Email              string               `bson:"email"`
-	Password           string               `bson:"password"`
-	Mobile             string               `bson:"mobile"`
-	Location           string               `bson:"location"`
-	Buckets            []primitive.ObjectID `bson:"buckets"`
-	TotalBuckets       int                  `bson:"totalBuckets"`
-	TotalNumberOfFiles int                  `bson:"totalNumberOfFiles"`
-	TotalBandwidth     float64              `bson:"totalBandwidth"`
-	TotalStorageUsed   float64              `bson:"totalStorageUsed"`
+	ID                 primitive.ObjectID   `bson:"_id,omitempty" json:"renterId"`
+	FirstName          string               `bson:"firstName" json:"firstName"`
+	LastName           string               `bson:"lastName" json:"lastName"`
+	Username           string               `bson:"username" json:"userName"`
+	Email              string               `bson:"email" json:"email"`
+	Password           string               `bson:"password" json:"-"`
+	Mobile             string               `bson:"mobile" json:"mobile"`
+	Location           string               `bson:"location" json:"location"`
+	Buckets            []primitive.ObjectID `bson:"buckets" json:"-"`
+	TotalBuckets       int                  `bson:"totalBuckets" json:"totalBuckets"`
+	TotalNumberOfFiles int                  `bson:"totalNumberOfFiles" json:"totalNumberOfFiles"`
+	TotalBandwidth     float64              `bson:"totalBandwidth" json:"totalBandwidth"`
+	TotalStorageUsed   float64              `bson:"totalStorageUsed" json:"totalStorageUsed"`
 }
+
+type CollectionName string
+
+const (
+	RENTERS        CollectionName = "renters"
+	BUCKETS        CollectionName = "buckets"
+	LOGIN          CollectionName = "login"
+	RENTER_METRICS CollectionName = "renterMetrics"
+)
 
 type DailyStorageTrend struct {
 	Day       time.Time `bson:"day"`

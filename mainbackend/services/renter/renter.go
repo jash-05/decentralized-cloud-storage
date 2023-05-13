@@ -24,6 +24,8 @@ func HashPassword(password string) (string, error) {
 func Register(c *gin.Context) {
 
 	renterCollection := config.GetCollection(config.DB, string(models.RENTERS))
+	renterMetricsCollection := config.GetCollection(config.DB, string(models.RENTER_METRICS))
+
 	newRenter := models.NewRenterRequestBody{}
 
 	if err := c.BindJSON(&newRenter); err != nil {
@@ -53,14 +55,25 @@ func Register(c *gin.Context) {
 		FirstName: newRenter.FirstName,
 		LastName:  newRenter.LastName,
 		Username:  utils.GenerateRandomCharsetId(),
-		Email:     newRenter.Email,	
+		Email:     newRenter.Email,
 		Password:  passwordHash,
 		Mobile:    newRenter.Mobile,
 		Location:  newRenter.Location,
 		Buckets:   make([]primitive.ObjectID, 0),
 	}
 
-	_, err = renterCollection.InsertOne(c, renterPayload)
+	insertedRenter, err := renterCollection.InsertOne(c, renterPayload)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"message": err.Error()})
+		return
+	}
+
+	renterMetricsPayload := models.RenterMetrics{
+		RenterId:           insertedRenter.InsertedID.(primitive.ObjectID),
+		DailyStorageTrends: []models.DailyStorageTrend{},
+	}
+
+	_, err = renterMetricsCollection.InsertOne(c, renterMetricsPayload)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"message": err.Error()})
 		return
@@ -99,6 +112,31 @@ func Login(c *gin.Context) {
 	c.IndentedJSON(http.StatusOK, gin.H{"renterId": renterDocument.ID})
 }
 
+func GetHighLevelMetrics(c *gin.Context) {
+	renterMetricsCollection := config.GetCollection(config.DB, string(models.RENTER_METRICS))
+	renterId := c.Query("renterId")
+	fmt.Println("Printing renter ID")
+	fmt.Println(renterId)
+	primitiveRenterId, err := primitive.ObjectIDFromHex(renterId)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"message": err.Error()})
+		return
+	}
+
+	renterMetrics := models.RenterMetrics{}
+	err = renterMetricsCollection.FindOne(c, bson.M{"renterID": primitiveRenterId}).Decode(&renterMetrics)
+	if err != nil {
+		if err == mongo.ErrNoDocuments {
+			c.JSON(http.StatusBadRequest, gin.H{"message": "No such renter id exists"})
+			return
+		}
+		c.JSON(http.StatusInternalServerError, gin.H{"message": err.Error()})
+		return
+	}
+
+	c.IndentedJSON(http.StatusOK, gin.H{"renterId": renterMetrics})
+}
+
 // function to update user profile
 func UpdateProfile(c *gin.Context) {
 	fmt.Println("UpdateProfile")
@@ -133,10 +171,10 @@ func UpdateProfile(c *gin.Context) {
 
 	updatedRenter := bson.M{
 		"firstName": newRenter.FirstName,
-		 "lastName": newRenter.LastName, 
-		 "email": newRenter.Email, 
+		"lastName":  newRenter.LastName,
+		"email":     newRenter.Email,
 		//  "password": newRenter.Password,
-		"mobile": newRenter.Mobile,
+		"mobile":   newRenter.Mobile,
 		"location": newRenter.Location,
 	}
 
