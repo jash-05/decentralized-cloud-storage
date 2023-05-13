@@ -34,6 +34,6 @@ func Routes(router *gin.Engine) {
 		renterRoutes.POST("login", renter.Login)
 		renterRoutes.PUT("updateProfile", renter.UpdateProfile)
 		renterRoutes.GET("getProfile", renter.GetProfile)
-		// TODO: Add getHighLevelMetrics endpoint - [/renter/dashboard/getHighLevelMetrics] @jaineil
+		renterRoutes.GET("getHighLevelMetrics", renter.GetHighLevelMetrics)
 	}
 }
