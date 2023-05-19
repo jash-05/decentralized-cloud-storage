@@ -283,7 +283,7 @@ const Files = () => {
 			<br />
 			<div className="buckets-list-wrapper">
 				<BasicTable
-					page="file"
+					category="file"
 					headers={["Name", "Size (in GB)", "Type", 'Uploaded on']}
 					rowData={filteredData}
 					handleDownloadFile={handleDownloadFile}
