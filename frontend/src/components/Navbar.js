@@ -26,7 +26,7 @@ const Navbar = () => {
             <div style={{ display: 'flex' }}>
                 <img style={{ maxHeight: "80px", minHeight: "80px" }} src={logo} alt="logo" />
                 <hr style={{ marginLeft: "20px", marginRight: "20px" }} />
-                <h1 style={{ color: "white" }}>FileStore</h1>
+                <h1 style={{ color: "white" }}>PeerDrive</h1>
             </div>
             <div className="starter-buttons">
                 <Button onClick={navigateToLogin} text="Login" style={{ backgroundColor: "#FFD817" }} ></Button>
