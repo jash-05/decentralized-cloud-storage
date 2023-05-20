@@ -9,7 +9,7 @@ const printErrorMessage = (err) => {
 
 const makeGetRequest = async (requestUrl, params) => {
     try {
-        const { data } = await axios.get(requestUrl, { params: params})
+        const { data } = await axios.get(requestUrl, { params: params })
         return data
     } catch (err) {
         printErrorMessage(err, requestUrl, 'GET')
@@ -19,7 +19,7 @@ const makeGetRequest = async (requestUrl, params) => {
 
 const makePostRequest = async (requestUrl, payload, params) => {
     try {
-        const { data } = await axios.post(requestUrl, payload, { params: params})
+        const { data } = await axios.post(requestUrl, payload, { params: params })
         return data
     } catch (err) {
         printErrorMessage(err, requestUrl, 'POST')
@@ -39,7 +39,7 @@ const makePutRequest = async (requestUrl, payload) => {
 
 const makeDeleteRequest = async (requestUrl, params) => {
     try {
-        const { data } = await axios.delete(requestUrl, { params: params})
+        const { data } = await axios.delete(requestUrl, { params: params })
         return data
     } catch (err) {
         printErrorMessage(err, requestUrl, 'DELETE')
@@ -47,7 +47,7 @@ const makeDeleteRequest = async (requestUrl, params) => {
     }
 }
 
-export const makeAxiosRequest = async (method, backendName, routeGroup, routePath, payload=null, params=null) => {
+export const makeAxiosRequest = async (method, backendName, routeGroup, routePath, payload = null, params = null) => {
     const backendUrl = GET_BACKEND_URL(backendName)
     const requestUrl = backendUrl + routeGroup + '/' + routePath
 

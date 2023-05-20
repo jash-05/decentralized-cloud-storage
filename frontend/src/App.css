@@ -44,7 +44,7 @@
   display: flex;
   flex-direction: column;
   /* justify-content: center; */
-  padding-top: 5%;
+  /* padding-top: 5%; */
   align-items: center;
   width: 100%;
   height: 100vh;
@@ -180,6 +180,11 @@
   height: 100%;
 }
 
+/* .MuiTable-root {
+  height: 100%;
+} */
+
+
 .MuiTableCell-root>a {
   text-decoration: none;
   color: #000000;
@@ -201,6 +206,7 @@
   border-radius: 200px;
   background-color: black;
 }
+
 
 /* .paper-card{
   border-radius: "20px";

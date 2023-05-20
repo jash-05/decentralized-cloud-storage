@@ -249,7 +249,7 @@ const Buckets = () => {
 			<br />
 			<div className="buckets-list-wrapper">
 				<BasicTable
-					page={"bucket"}
+					category={"bucket"}
 					headers={["Name", "Network", "Objects", "Created"]}
 					rowData={filteredData}
 					handleDeleteBucket={handleDeleteBucket}
